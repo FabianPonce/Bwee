@@ -95,6 +95,14 @@ public:
 	 */
 	void Update();
 
+	Realm* GetRealm(uint32 id) { return m_realms[id]; }
+	uint32 GetRealmID(const char* n) { return m_realmMap[n]; }
+
+	/*
+	 * Sends NICK and USER responses to the server.
+	 */
+	void SendIdentification();
+
 protected:
 	/* Message Handlers
 	* --------------------------------
@@ -110,6 +118,7 @@ protected:
 	void HandlePong(IRCMessage& recvData);
 	void HandleKick(IRCMessage& recvData);
 	void HandleNick(IRCMessage& recvData);
+	void HandleErrNotRegistered(IRCMessage& recvData);
 
 	// The current host we're connected to as specified in the config file.
 	string mHost;
@@ -143,8 +152,9 @@ protected:
 	// A list of channels and their passwords.
 	std::map<string,string> mChannelList;
 
-	// Pointer to our mySQL connection.
-	MySQLConnection * mSQLConn;
+	// Pointer to our realms.
+	Realm **  m_realms;
+	std::map<const char*, uint32> m_realmMap;
 
 	// Time until we can accept a new privmsg "command"
 	uint32 mAntiSpamTicker;

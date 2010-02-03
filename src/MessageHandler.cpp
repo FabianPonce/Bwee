@@ -19,6 +19,11 @@
 
 #include "StdAfx.h"
 
+void IRCSession::HandleErrNotRegistered(IRCMessage& recvData)
+{
+	SendIdentification();
+}
+
 void IRCSession::HandleSuccessfulAuth(IRCMessage& recvData)
 {
 	// We're good to go.
@@ -97,68 +102,31 @@ void IRCSession::HandlePrivmsg(IRCMessage& recvData)
 	if(firstSpace == 0)
 		firstSpace = (uint32)recvData.args.length();
 
+	uint32 secondSpace = 0;
+	if( firstSpace > 0 )
+	{
+		secondSpace = (uint32)recvData.args.find(' ', firstSpace+1);
+	}
+
 	string cmd = string(strlwr((char*)recvData.args.substr(1, firstSpace - 1).c_str()));
-	if(cmd == "2v2" || cmd == "3v3" || cmd == "5v5")
-	{
-		uint32 stype = 0;
-		if(cmd == "3v3")
-			stype = 1;
-		else if(cmd == "5v5")
-			stype = 2;
-
-		QueryResult * result = mSQLConn->Query("SELECT ranking,name,rating FROM arenateams WHERE type = %u ORDER BY ranking ASC LIMIT 5", stype);
-		if(result)
-		{
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "+---+---------------------------+--------+");
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "|#  |         Team Name         | Rating |");
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "+---+---------------------------+--------+");
-			do 
-			{
-				uint32 rank = result->Fetch()[0].GetUInt32();
-				string name = result->Fetch()[1].GetString();
-				uint32 rating = result->Fetch()[2].GetUInt32();
-
-				SendChatMessage(PRIVMSG, recvData.target.c_str(), "|#%u | %25s |  %u  |", rank, name.c_str(), rating);
-			} while(result->NextRow());
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "+---+---------------------------+--------+");
-			delete result;
-		}
-		return;
-	}
-
-	if(cmd == "tophks")
-	{
-		QueryResult * result = mSQLConn->Query("SELECT name,killsLifeTime FROM characters ORDER BY killsLifeTime DESC LIMIT 5");
-		if(result)
-		{
-			uint32 place = 1;
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "+---+--------------+-------+");
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "| # |   Character  | Kills |");
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "+---+--------------+-------+");
-			do 
-			{
-				string name = result->Fetch()[0].GetString();
-				uint32 kills = result->Fetch()[1].GetUInt32();
-
-				SendChatMessage(PRIVMSG, recvData.target.c_str(), "| %u | %12s | %5u |", place, name.c_str(), kills);
-				place++;
-			} while(result->NextRow());
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "+---+--------------+-------+");
-			delete result;
-		}
-		return;
-	}
-
 	if(cmd == "info")
 	{
 		// Really? Stop looking here. If you're going to edit this, at least don't steal credit.
 		//  - Valroft
-		SendChatMessage(PRIVMSG, recvData.target.c_str(), "I am %s, an IRC bot programmed by Valroft of AspireDev to integrate with Ascent-based servers.", mNickName.c_str());
+		SendChatMessage(PRIVMSG, recvData.target.c_str(), "I am %s, an IRC bot programmed by Valroft of MintWoW to integrate with MaNGOS-based servers.", mNickName.c_str());
 		return;
 	}
 
 	if(cmd == "online")
 	{
+		if(recvData.args.length() <= firstSpace+1)
+		{
+			SendChatMessage(PRIVMSG, recvData.target.c_str(), "Incorrect format. Expected format is !online $realmname");
+			return;
+		}
+
+		string realmName = recvData.args.substr(firstSpace+1);
+		MySQLConnection* mSQLConn = GetRealm(GetRealmID(realmName.c_str()))->GetDB();
 		QueryResult * query = mSQLConn->Query("SELECT COUNT(*) FROM characters WHERE online > 0");
 		if(query)
 		{
@@ -166,14 +134,14 @@ void IRCSession::HandlePrivmsg(IRCMessage& recvData)
 			SendChatMessage(PRIVMSG, recvData.target.c_str(), "There are currently %u players online.", result);
 			delete query;
 		}
-		query = mSQLConn->Query("SELECT COUNT(*) FROM characters WHERE online > 0 AND (race = 1 OR race = 3 OR race = 4 OR race = 7 OR race = 11)");
+		query = mSQLConn->Query("SELECT COUNT(*) FROM characters WHERE online > 0 AND race IN (1,3,4,7,11)");
 		if(query)
 		{
 			uint32 result = query->Fetch()[0].GetUInt32();
 			SendChatMessage(PRIVMSG, recvData.target.c_str(), "There are currently %u Alliance players online.", result);
 			delete query;
 		}
-		query = mSQLConn->Query("SELECT COUNT(*) FROM characters WHERE online > 0 AND (race = 2 OR race = 5 OR race = 6 OR race = 8 OR race = 10)");
+		query = mSQLConn->Query("SELECT COUNT(*) FROM characters WHERE online > 0 AND race IN (2,5,6,8,10)");
 		if(query)
 		{
 			uint32 result = query->Fetch()[0].GetUInt32();
@@ -183,89 +151,15 @@ void IRCSession::HandlePrivmsg(IRCMessage& recvData)
 		return;
 	}
 
-	if(cmd == "guildinfo")
-	{
-		if(recvData.args.length() <= firstSpace+1)
-			return;
-
-		string guildname = mSQLConn->EscapeString(recvData.args.substr(firstSpace+1));
-		
-		QueryResult * result = mSQLConn->Query("SELECT guildId, guildName, leaderGuid, motd FROM guilds WHERE guildName = '%s'", guildname.c_str());
-		if(result)
-		{
-			// Get the nameeee.
-			uint32 guildid = result->Fetch()[0].GetUInt32();
-			guildname = result->Fetch()[1].GetString();
-			uint32 guid = result->Fetch()[2].GetUInt32();
-			string motd = result->Fetch()[3].GetString();
-			string leader = "UNKNOWN";
-			QueryResult * result2 = mSQLConn->Query("SELECT name FROM characters WHERE guid = '%u'", guid);
-			if(result2)
-			{
-				leader = result2->Fetch()[0].GetString();
-				delete result2;
-				result2 = NULL;
-			}
-
-			uint32 members = 1;
-			result2 = mSQLConn->Query("SELECT COUNT(*) FROM guild_data WHERE guildid = %u", guildid);
-			if(result2)
-			{
-				members = result2->Fetch()[0].GetUInt32();
-				delete result2;
-				result2 = NULL;
-			}
-
-			SendChatMessage( PRIVMSG, recvData.target.c_str(), "%s currently has %u members and is lead by %s. Their guild message of the day is: \"%s\".", guildname.c_str(), members, leader.c_str(), motd.c_str());
-
-			delete result;
-		}
-	}
-
-	if(cmd == "teaminfo")
-	{
-		if(recvData.args.length() <= firstSpace+1)
-			return;
-
-		string teamname = mSQLConn->EscapeString(recvData.args.substr(firstSpace+1));
-		QueryResult * result = mSQLConn->Query("SELECT leader,ranking,rating,type FROM arenateams WHERE name = '%s'", teamname.c_str());
-		if(result)
-		{
-			do 
-			{
-				uint32 leaderguid = result->Fetch()[0].GetUInt32();
-				uint32 ranking = result->Fetch()[1].GetUInt32();
-				uint32 rating = result->Fetch()[2].GetUInt32();
-				uint32 ttype = result->Fetch()[3].GetUInt32();
-				string stype = "2v2";
-				if(ttype == 1)
-					stype = "3v3";
-				else if(ttype == 2)
-					stype = "5v5";
-
-				// Now, we need the leader's name. :(
-				QueryResult * result2 = mSQLConn->Query("SELECT name FROM characters WHERE guid = %u", leaderguid);
-				if(!result2) return;
-
-				string leadername = result2->Fetch()[0].GetString();
-
-				SendChatMessage(PRIVMSG, recvData.target.c_str(), "%s is a %s team owned by %s with a rating of %u and is rated #%u in it's bracket.", teamname.c_str(), stype.c_str(), leadername.c_str(), rating, ranking);
-			} while(result->NextRow());
-			delete result;
-		}
-		else
-		{
-			SendChatMessage(PRIVMSG, recvData.target.c_str(), "I can't find an arena team with that name.");
-		}
-	}
-
 	if(cmd == "playerinfo")
 	{
-		if(recvData.args.length() <= firstSpace+1)
+		if(recvData.args.length() <= secondSpace+1)
 			return;
 
-		string player = mSQLConn->EscapeString(recvData.args.substr(firstSpace+1));
-		QueryResult * result = mSQLConn->Query("SELECT level,race,class,killsLifeTime,gender,online FROM characters WHERE name = '%s'", player.c_str());
+		const char* realm = recvData.args.substr(firstSpace+1,secondSpace-firstSpace+1).c_str();
+		MySQLConnection* mSQLConn = GetRealm(GetRealmID(realm))->GetDB();
+		string player = mSQLConn->EscapeString(recvData.args.substr(secondSpace+1));
+		QueryResult * result = mSQLConn->Query("SELECT level,race,class,totalKills,gender,online FROM characters WHERE name = '%s'", player.c_str());
 		if(result)
 		{
 			do 

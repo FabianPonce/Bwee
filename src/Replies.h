@@ -34,5 +34,6 @@
 #define RPL_KILL			"KILL"
 #define RPL_KICK			"KICK"
 
+#define RPL_ERR_NOTREGISTERED "451"
 
 #endif

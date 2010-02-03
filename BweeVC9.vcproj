@@ -193,6 +193,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Realm.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Replies.h"
 				>
 			</File>

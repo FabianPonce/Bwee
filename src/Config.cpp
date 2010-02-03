@@ -370,7 +370,7 @@ parse:
 		/* handle any errors */
 		if(in_block)
 		{
-			Log.Notice("Config", "Unterminated block.");
+			Log.Notice("Config", "Unterminated block %s.", current_block.c_str());
 			return false;
 		}
 

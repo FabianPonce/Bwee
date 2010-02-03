@@ -26,7 +26,7 @@ int main()
 	printf("Bwee IRC Bot\n");
 	printf("By Valroft of http://www.mintwow.com/\n");
 	printf("This program is licensed under the GNU Affero GPL.\n");
-	printf("-------------------------------------------------------");
+	printf("-------------------------------------------------------\n");
 	Log.Notice("Bwee", "Starting up...");
 
 #ifdef WIN32

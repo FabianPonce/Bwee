@@ -55,14 +55,7 @@ IRCSession::IRCSession(std::string host, uint32 port)
 	ADD_CODE( RPL_PONG, &IRCSession::HandlePong )
 	ADD_CODE( RPL_KICK, &IRCSession::HandleKick );
 	ADD_CODE( RPL_NICK, &IRCSession::HandleNick );
-
-	string mySQLHost = Config.MainConfig.GetStringDefault("MySQL", "Host", "");
-	string mySQLUser = Config.MainConfig.GetStringDefault("MySQL", "User", "");
-	string mySQLPassword = Config.MainConfig.GetStringDefault("MySQL", "Password", "");
-	string mySQLDatabase = Config.MainConfig.GetStringDefault("MySQL", "Database", "");
-
-	mSQLConn = new MySQLConnection(mySQLHost, mySQLUser, mySQLPassword);
-	mSQLConn->UseDatabase(mySQLDatabase);
+	ADD_CODE( RPL_ERR_NOTREGISTERED, &IRCSession::HandleErrNotRegistered );
 
 	mAntiSpamTicker = 0;
 
@@ -110,6 +103,38 @@ void IRCSession::RehashConfig()
 	{
 		Log.Notice("Config", "Loaded 0 default channels.");
 	}
+
+	uint32 realmCount = Config.MainConfig.GetIntDefault("Realms", "Count", 0);
+	if(realmCount)
+	{
+		m_realms = new Realm*[realmCount];
+		for(uint32 i = 0; i < realmCount; ++i)
+		{
+			char term[256];
+			memset(term, '\0', 255);
+			sprintf(term, "Realm%u", i+1);
+
+			string config = string(term);
+			string name = Config.MainConfig.GetStringDefault(config.c_str(), "Name", "");
+			if( name.length() == 0 )
+			{
+				Log.Error("Config", "Invalid realm configuration for realm %u", i+1);
+				continue;
+			}
+
+			string dbhost = Config.MainConfig.GetStringDefault(config.c_str(), "DBHost", "localhost");
+			string dbuser = Config.MainConfig.GetStringDefault(config.c_str(), "DBUser", "root");
+			string dbpassword = Config.MainConfig.GetStringDefault(config.c_str(), "DBPassword", "");
+			string database = Config.MainConfig.GetStringDefault(config.c_str(), "DBName", "characters");
+			int dbport = Config.MainConfig.GetIntDefault(config.c_str(), "DBPort", 3306);
+			MySQLConnection * conn = new MySQLConnection(dbhost, dbport, dbuser, dbpassword);
+			delete conn->Query("USE %s", database.c_str());
+			m_realms[i] = new Realm( name, conn );
+			m_realmMap[ m_realms[i]->GetName().c_str() ] = i;
+		}
+	}
+	else
+		m_realms = NULL;
 }
 
 IRCSession::~IRCSession()
@@ -122,6 +147,13 @@ IRCSession::~IRCSession()
 
 void IRCSession::OnRecv(string recvString)
 {
+	// HACK: PING
+	if( recvString.substr(0,4).compare("PING") == 0 )
+	{
+		WriteLineForce("PONG :%s", recvString.substr(6).c_str());
+		return;
+	}
+
 	IRCMessage mess;
 
 	char hostmask[256];
@@ -230,12 +262,13 @@ void IRCSession::Update()
 			mSocket->Connect(mHost, mPort);
 			Log.Notice("IRCSession", "Lost connection to %s, reconnecting...", mHost.c_str());
 			mConnState = CONN_CONNECTED;
+			Sleep(20);
+			continue; // update next loop.
 		}
 
 		if(mConnState == CONN_CONNECTED)
 		{
-			WriteLine("NICK %s", mNickName.c_str());
-			WriteLine("USER %s 8 * :%s", mNickName.c_str(), mNickName.c_str());
+			SendIdentification();
 			mConnState = CONN_REGISTERING;
 		}
 
@@ -315,3 +348,8 @@ void IRCSession::WriteLineForce(const char * format, ...)
 	//mSendQueue.push_back(send);
 }
 
+void IRCSession::SendIdentification()
+{
+	WriteLineForce("NICK %s", mNickName.c_str());
+	WriteLineForce("USER %s 8 * : %s", mNickName.c_str(), mNickName.c_str());
+}

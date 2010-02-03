@@ -32,7 +32,7 @@ struct ASyncQuery
 class MySQLConnection : IRunnable
 {
 public:
-	MySQLConnection(string host, string user, string password);
+	MySQLConnection(string host, int port, string user, string password);
 	~MySQLConnection();
 
 	void UseDatabase(string database);

@@ -19,10 +19,10 @@
 
 #include "StdAfx.h"
 
-MySQLConnection::MySQLConnection(string host, string user, string password)
+MySQLConnection::MySQLConnection(string host, int port, string user, string password)
 {
 	handle = mysql_init( NULL );
-	mysql_real_connect(handle, host.c_str(), user.c_str(), password.c_str(), "", 3306, "", 0);
+	mysql_real_connect(handle, host.c_str(), user.c_str(), password.c_str(), "", port, "", 0);
 	if(!handle)
 	{
 		Log.Notice("mySQL", "Error connecting to database on %s", host.c_str());

@@ -12,7 +12,7 @@
 #include "QueryResult.h"
 #include "MySQLConnection.h"
 
-
+#include "Realm.h"
 
 #include "Replies.h"
 #include "IRCSession.h"
