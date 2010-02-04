@@ -189,6 +189,116 @@ void IRCSession::HandlePrivmsg(IRCMessage& recvData)
 		uint32 result = mRandGenerator->randInt(100);
 		SendChatMessage(PRIVMSG, recvData.target.c_str(), "You roll a %u!", result);
 	}
+	if(cmd == "topten")
+	{
+		const char* realm = recvData.args.substr(firstSpace+1,secondSpace-firstSpace+1).c_str();
+		MySQLConnection* mSQLConn = GetRealm(GetRealmID(realm))->GetDB();
+		string desc = recvData.args.substr(secondSpace+1);
+
+		string orderClause;
+		string primarySelectData;
+
+		if( desc == "hks" )
+		{
+			orderClause = "ORDER BY totalKills DESC";
+			primarySelectData = "totalKills";
+		}
+		else if( desc == "level" )
+		{
+			orderClause = "ORDER BY level DESC";
+			primarySelectData = "level";
+		}
+		else if( desc == "gold" )
+		{
+			orderClause = "ORDER BY money DESC";
+			primarySelectData = "money";
+		}
+		else if( desc == "hkstoday" )
+		{
+			orderClause = "ORDER BY todayKills DESC";
+			primarySelectData = "todayKills";
+		}
+		else if( desc == "hksyesterday" )
+		{
+			orderClause = "ORDER BY yesterdayKills DESC";
+			primarySelectData = "yesterdayKills";
+		}
+		else if( desc == "honor" )
+		{
+			orderClause = "ORDER BY totalHonorPoints DESC";
+			primarySelectData = "totalHonorPoints";
+		}
+		else if( desc == "drunk" )
+		{
+			orderClause = "ORDER BY drunk DESC";
+			primarySelectData = "drunk";
+		}
+		else if( desc == "health" )
+		{
+			orderClause = "ORDER BY health DESC";
+			primarySelectData = "health";
+		}
+		else if( desc == "mana" )
+		{
+			orderClause = "ORDER BY power1 DESC";
+			primarySelectData = "power1";
+		}
+		else if( desc == "totaltime" )
+		{
+			orderClause = "ORDER BY totaltime DESC";
+			primarySelectData = "totaltime";
+		}
+		else if( desc == "leveltime" )
+		{
+			orderClause = "ORDER BY leveltime DESC";
+			primarySelectData = "leveltime";
+		}
+		else if( desc == "talentresetcost" )
+		{
+			orderClause = "ORDER BY resettalents_cost DESC";
+			primarySelectData = "resettalents_cost";
+		}
+		else
+		{
+			SendChatMessage(PRIVMSG, recvData.target.c_str(), "Invalid option.");
+			SendChatMessage(PRIVMSG, recvData.target.c_str(), "hks, level, gold, hkstoday, hksyesterday, honor, drunk, health, mana, totaltime, leveltime, talentresetcost");
+			return;
+		}
+
+		QueryResult* result = mSQLConn->Query("SELECT name,%s FROM characters %s LIMIT 10", primarySelectData.c_str(), orderClause.c_str());
+		if(!result)
+		{
+			SendChatMessage(PRIVMSG, recvData.target.c_str(), "Internal error.");
+			return;
+		}
+
+		SendChatMessage(PRIVMSG, recvData.target.c_str(), "+----------------------------------------------+");
+		SendChatMessage(PRIVMSG, recvData.target.c_str(), "|   Name                         |    Value    |");
+		SendChatMessage(PRIVMSG, recvData.target.c_str(), "+----------------------------------------------+");
+		do 
+		{
+			Field* fields = result->Fetch();
+			const char* name = fields[0].GetString();
+			uint32 val = fields[1].GetUInt32();
+
+			std::stringstream ss;
+			if( desc == "gold" )
+			{
+				uint32 gold = val / 10000;
+				uint32 silver = (val - (gold*10000)) / 100;
+				uint32 copper = val - (gold*10000) - (silver*100);
+				ss << gold << "g " << silver << "s " << copper << "c";
+			}
+			else
+				ss << val;
+			string display = ss.str();
+
+			SendChatMessage(PRIVMSG, recvData.target.c_str(), "| %30s | %11s |", name, display.c_str());
+		} while (result->NextRow());
+		SendChatMessage(PRIVMSG, recvData.target.c_str(), "+----------------------------------------------+");
+		delete result;
+		result = NULL;
+	}
 }
 
 void IRCSession::HandlePing(IRCMessage& recvData)
