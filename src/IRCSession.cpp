@@ -172,7 +172,7 @@ void IRCSession::OnRecv(string recvString)
 	// HACK: PING
 	if( recvString.substr(0,4).compare("PING") == 0 )
 	{
-		WriteLineForce("PONG :%s", recvString.substr(6).c_str());
+		WriteLine("PONG :%s", recvString.substr(6).c_str());
 		return;
 	}
 
@@ -352,26 +352,8 @@ void IRCSession::WriteLine(const char * format, ...)
 	//mSendQueue.push_back(send);
 }
 
-void IRCSession::WriteLineForce(const char * format, ...)
-{
-	char obuf[65536];
-	va_list ap;
-
-	va_start(ap, format);
-	vsnprintf(obuf, 65536, format, ap);
-	va_end(ap);
-
-	if( *obuf == '\0' )
-		return;
-
-	string send = string(obuf) + "\r\n";
-
-	mSocket->SendForcedLine(send);
-	//mSendQueue.push_back(send);
-}
-
 void IRCSession::SendIdentification()
 {
-	WriteLineForce("NICK %s", mNickName.c_str());
-	WriteLineForce("USER %s 8 * : %s", mNickName.c_str(), mNickName.c_str());
+	WriteLine("NICK %s", mNickName.c_str());
+	WriteLine("USER %s 8 * : %s", mNickName.c_str(), mNickName.c_str());
 }

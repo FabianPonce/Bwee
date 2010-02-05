@@ -75,7 +75,6 @@ public:
 	 * Outputs a message to the server. You need not include \n.
 	 */
 	void WriteLine(const char * format, ...);
-	void WriteLineForce(const char * format, ...);
 
 	/*
 	 * Callback for SimpleSocket I/O. Do not invoke directly.

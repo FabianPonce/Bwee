@@ -327,7 +327,7 @@ void IRCSession::HandleKick(IRCMessage& recvData)
 	// Were we kicked? Attempt to rejoin
 	if(kicked == mNickName)
 	{
-		WriteLineForce("JOIN %s", recvData.target.c_str());
+		WriteLine("JOIN %s", recvData.target.c_str());
 		Log.Color(TRED);
 		printf("%s kicked me from %s for reason: \"%s\"\n", kickedby.c_str(), channel.c_str(), reason.c_str());
 		Log.Color(TNORMAL);
