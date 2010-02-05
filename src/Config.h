@@ -59,13 +59,4 @@ private:
 	map<uint32, ConfigBlock> m_settings;
 };
 
-
-class ConfigMgr
-{
-public:
-	ConfigFile MainConfig;
-};
-
-extern ConfigMgr Config;
-
 #endif

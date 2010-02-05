@@ -60,10 +60,10 @@ struct IRCMessage
 	string *argv;
 };
 
-class IRCSession
+class IRCSession : public IRunnable
 {
 public:
-	IRCSession(std::string host, uint32 port);
+	IRCSession(std::string config);
 	~IRCSession();
 
 	/*
@@ -103,6 +103,11 @@ public:
 	 */
 	void SendIdentification();
 
+	/*
+	 * Returns the configuration controller
+	 */
+	ConfigFile* GetConfig() { return mConfigFile; }
+
 protected:
 	/* Message Handlers
 	* --------------------------------
@@ -119,6 +124,9 @@ protected:
 	void HandleKick(IRCMessage& recvData);
 	void HandleNick(IRCMessage& recvData);
 	void HandleErrNotRegistered(IRCMessage& recvData);
+ 
+	// the config file!
+	string mConfig;
 
 	// The current host we're connected to as specified in the config file.
 	string mHost;
@@ -161,6 +169,12 @@ protected:
 
 	// The random number generator
 	MTRand * mRandGenerator;
+
+	// Configuration File class
+	ConfigFile* mConfigFile;
+
+	// The thread we're running on
+	Thread * mThread;
 };
 typedef void(IRCSession::*IRCCallback)(IRCMessage& recvData);
 typedef std::map<std::string, IRCCallback> MessageHandlerMap;

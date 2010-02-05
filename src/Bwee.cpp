@@ -22,7 +22,6 @@ using namespace std;
 CLog Log;
 int main()
 {
-	Config.MainConfig.SetSource(BWEE_CONFIGURATION_FILE);
 	printf("Bwee IRC Bot\n");
 	printf("By Valroft of http://www.mintwow.com/\n");
 	printf("This program is licensed under the GNU Affero GPL.\n");
@@ -35,10 +34,12 @@ int main()
 	WSAStartup(MAKEWORD(2,0), &info);
 #endif
 
-	std::string server = Config.MainConfig.GetStringDefault("IRC", "Server", "");
-	uint32 port = Config.MainConfig.GetIntDefault("IRC", "Port", 6667);
-	
-	new IRCSession(server, port);
+	new IRCSession(BWEE_CONFIGURATION_FILE);
+	// Keep the main thread busy. Doo doo doooooo.
+	for(;;)
+	{
+		Sleep(1000); 
+	}
 	return 0;
 }
 

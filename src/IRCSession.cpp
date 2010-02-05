@@ -24,19 +24,19 @@ MessageHandlerMap IRCMessageHandlerMap;
 #define ADD_CODE(code,method) \
 	IRCMessageHandlerMap.insert( make_pair(code, method) );
 
-IRCSession::IRCSession(std::string host, uint32 port)
+IRCSession::IRCSession(std::string config) : IRunnable()
 {
-	mHost = host;
-	mPort = port;
-	mSocket = new SimpleSocket();
-	if(!mSocket->Connect(host, port))
+	mConfigFile = NULL;
+	mConfig = config;
+	mSocket = NULL;
+	RehashConfig();
+	if( !GetConfig() )
 	{
-		Log.Notice("IRCSession", "Unable to open socket to %s.", host.c_str());
-		exit(1);
+		Log.Error("IRCSession", "Fatal error: cannot load config file %s.", mConfig.c_str());
+		exit(-1);
 		return;
 	}
-	Log.Notice("IRCSession", "Connected to %s successfully.", host.c_str());
-	RehashConfig();
+
 	mConnState = CONN_CONNECTED;
 
 	mRandGenerator = new MTRand;
@@ -59,25 +59,47 @@ IRCSession::IRCSession(std::string host, uint32 port)
 
 	mAntiSpamTicker = 0;
 
-	Update();
+	mThread = new Thread(this);
+	mThread->start();
 }
 
 void IRCSession::RehashConfig()
 {
-	if(!Config.MainConfig.SetSource(BWEE_CONFIGURATION_FILE))
+	if(!GetConfig())
 	{
-		Log.Notice("Config", "Error loading configuration file.");
-		return;
+		mConfigFile = new ConfigFile();
+		if( !mConfigFile->SetSource(mConfig.c_str()) )
+		{
+			Log.Notice("Config", "Error loading configuration file.");
+			return;
+		}
 	}
-	mNickName = Config.MainConfig.GetStringDefault("User", "Nick", "Test");
-	mUserName = Config.MainConfig.GetStringDefault("User", "Username", "Test");
-	mHostName = Config.MainConfig.GetStringDefault("User", "Host", "bwee");
+
+	std::string server = GetConfig()->GetStringDefault("IRC", "Server", "");
+	uint32 port = GetConfig()->GetIntDefault("IRC", "Port", 6667);
+	if( !mSocket )
+	{
+		mSocket = new SimpleSocket();
+		if(!mSocket->Connect(server, port))
+		{
+			Log.Notice("IRCSession", "Unable to open socket to %s.", server.c_str());
+			exit(1);
+			return;
+		}
+		Log.Notice("IRCSession", "Connected to %s successfully.", server.c_str());
+		mHost = server;
+		mPort = port;
+	}
+
+	mNickName = GetConfig()->GetStringDefault("User", "Nick", "Test");
+	mUserName = GetConfig()->GetStringDefault("User", "Username", "Test");
+	mHostName = GetConfig()->GetStringDefault("User", "Host", "bwee");
 	mServerName = mHostName;
 
-	mUseNickServ = Config.MainConfig.GetBoolDefault("NickServ", "Enable", false);
-	mNickServPassword = Config.MainConfig.GetStringDefault("NickServ", "Password", "");
+	mUseNickServ = GetConfig()->GetBoolDefault("NickServ", "Enable", false);
+	mNickServPassword = GetConfig()->GetStringDefault("NickServ", "Password", "");
 
-	uint32 channelCount = Config.MainConfig.GetIntDefault("Channels", "Count", 0);
+	uint32 channelCount = GetConfig()->GetIntDefault("Channels", "Count", 0);
 	if(channelCount)
 	{
 		for(uint32 i = 1; i <= channelCount; i++)
@@ -87,14 +109,14 @@ void IRCSession::RehashConfig()
 			sprintf(term, "Channel%u", i);
 
 			string config = string(term);
-			string channel = Config.MainConfig.GetStringDefault(config.c_str(), "Name", "");
+			string channel = GetConfig()->GetStringDefault(config.c_str(), "Name", "");
 			if(channel == "")
 			{
 				Log.Notice("Config", "Error parsing channels configuration.");
 				return;
 			}
 
-			string password = Config.MainConfig.GetStringDefault(config.c_str(), "Password", "");
+			string password = GetConfig()->GetStringDefault(config.c_str(), "Password", "");
 
 			mChannelList.insert( make_pair(channel, password) );
 		}
@@ -104,7 +126,7 @@ void IRCSession::RehashConfig()
 		Log.Notice("Config", "Loaded 0 default channels.");
 	}
 
-	uint32 realmCount = Config.MainConfig.GetIntDefault("Realms", "Count", 0);
+	uint32 realmCount = GetConfig()->GetIntDefault("Realms", "Count", 0);
 	if(realmCount)
 	{
 		m_realms = new Realm*[realmCount];
@@ -115,18 +137,18 @@ void IRCSession::RehashConfig()
 			sprintf(term, "Realm%u", i+1);
 
 			string config = string(term);
-			string name = Config.MainConfig.GetStringDefault(config.c_str(), "Name", "");
+			string name = GetConfig()->GetStringDefault(config.c_str(), "Name", "");
 			if( name.length() == 0 )
 			{
 				Log.Error("Config", "Invalid realm configuration for realm %u", i+1);
 				continue;
 			}
 
-			string dbhost = Config.MainConfig.GetStringDefault(config.c_str(), "DBHost", "localhost");
-			string dbuser = Config.MainConfig.GetStringDefault(config.c_str(), "DBUser", "root");
-			string dbpassword = Config.MainConfig.GetStringDefault(config.c_str(), "DBPassword", "");
-			string database = Config.MainConfig.GetStringDefault(config.c_str(), "DBName", "characters");
-			int dbport = Config.MainConfig.GetIntDefault(config.c_str(), "DBPort", 3306);
+			string dbhost = GetConfig()->GetStringDefault(config.c_str(), "DBHost", "localhost");
+			string dbuser = GetConfig()->GetStringDefault(config.c_str(), "DBUser", "root");
+			string dbpassword = GetConfig()->GetStringDefault(config.c_str(), "DBPassword", "");
+			string database = GetConfig()->GetStringDefault(config.c_str(), "DBName", "characters");
+			int dbport = GetConfig()->GetIntDefault(config.c_str(), "DBPort", 3306);
 			MySQLConnection * conn = new MySQLConnection(dbhost, dbport, dbuser, dbpassword);
 			delete conn->Query("USE %s", database.c_str());
 			m_realms[i] = new Realm( name, conn );

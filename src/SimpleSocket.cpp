@@ -5,7 +5,7 @@ SimpleSocket::SimpleSocket()
 {
 	m_fd = 0;
 	m_sendCount = 0;
-	m_sendPerPeriod = Config.MainConfig.GetIntDefault("IRC", "LinesPerSecond", 3);
+	m_sendPerPeriod = 3;
 	m_lastSendTime = time(NULL);
 	InitializeCriticalSection(&buffer_lock);
 }

@@ -19,8 +19,6 @@
 
 #include "StdAfx.h"
 
-ConfigMgr Config;
-
 //#define _CONFIG_DEBUG
 
 ConfigFile::ConfigFile()
