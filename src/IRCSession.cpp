@@ -152,11 +152,12 @@ void IRCSession::RehashConfig()
 			MySQLConnection * conn = new MySQLConnection(dbhost, dbport, dbuser, dbpassword);
 			delete conn->Query("USE %s", database.c_str());
 			m_realms[i] = new Realm( name, conn );
-			m_realmMap[ m_realms[i]->GetName().c_str() ] = i;
+			m_realmMap[ m_realms[i]->GetName() ] = i;
 		}
 	}
 	else
 		m_realms = NULL;
+
 }
 
 IRCSession::~IRCSession()
@@ -356,4 +357,20 @@ void IRCSession::SendIdentification()
 {
 	WriteLine("NICK %s", mNickName.c_str());
 	WriteLine("USER %s 8 * : %s", mNickName.c_str(), mNickName.c_str());
+}
+
+uint32 IRCSession::GetRealmID(std::string n)
+{
+	std::map<std::string, uint32>::iterator itr = m_realmMap.begin();
+	for(; itr != m_realmMap.end(); ++itr)
+	{
+		string s = itr->first;
+		uint32 i = itr->second;
+
+		uint32 r = strnicmp(s.c_str(), n.c_str(), s.length());
+		if( r == 0 )
+			return itr->second;
+	}
+
+	return 0;
 }

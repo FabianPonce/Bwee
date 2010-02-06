@@ -191,7 +191,7 @@ void IRCSession::HandlePrivmsg(IRCMessage& recvData)
 	}
 	if(cmd == "topten")
 	{
-		const char* realm = recvData.args.substr(firstSpace+1,secondSpace-firstSpace+1).c_str();
+		string realm = recvData.args.substr(firstSpace+1,secondSpace-firstSpace+1);
 		MySQLConnection* mSQLConn = GetRealm(GetRealmID(realm))->GetDB();
 		string desc = recvData.args.substr(secondSpace+1);
 

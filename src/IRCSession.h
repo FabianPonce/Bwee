@@ -95,7 +95,7 @@ public:
 	void Update();
 
 	Realm* GetRealm(uint32 id) { return m_realms[id]; }
-	uint32 GetRealmID(const char* n) { return m_realmMap[n]; }
+	uint32 GetRealmID(std::string n);
 
 	/*
 	 * Sends NICK and USER responses to the server.
@@ -161,7 +161,7 @@ protected:
 
 	// Pointer to our realms.
 	Realm **  m_realms;
-	std::map<const char*, uint32> m_realmMap;
+	std::map<std::string, uint32> m_realmMap;
 
 	// Time until we can accept a new privmsg "command"
 	uint32 mAntiSpamTicker;
