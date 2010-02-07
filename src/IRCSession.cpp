@@ -150,7 +150,7 @@ void IRCSession::RehashConfig()
 			string database = GetConfig()->GetStringDefault(config.c_str(), "DBName", "characters");
 			int dbport = GetConfig()->GetIntDefault(config.c_str(), "DBPort", 3306);
 			MySQLConnection * conn = new MySQLConnection(dbhost, dbport, dbuser, dbpassword);
-			delete conn->Query("USE %s", database.c_str());
+			conn->Query("USE %s", database.c_str());
 			m_realms[i] = new Realm( name, conn );
 			m_realmMap[ m_realms[i]->GetName() ] = i;
 		}
@@ -162,10 +162,22 @@ void IRCSession::RehashConfig()
 
 IRCSession::~IRCSession()
 {
+	delete mThread;
+
 	if(mSocket)
 		mSocket->Disconnect();
 
 	delete mSocket;
+	delete mCmdParser;
+	delete mRandGenerator;
+	delete mConfigFile;
+
+	for( uint32 i = 0; i < GetRealmCount(); ++i )
+	{
+		delete m_realms[i]->GetDB();
+		delete m_realms[i];
+	}
+	delete [] m_realms;
 }
 
 void IRCSession::OnRecv(string recvString)
@@ -279,6 +291,12 @@ void IRCSession::Update()
 {
 	while(true)
 	{
+		if( mConnState == CONN_QUITTING )
+		{
+			delete this;
+			break;
+		}
+
 		if(!mSocket->IsConnected())
 		{
 			//mSocket->WipeBuffers();

@@ -29,7 +29,7 @@ public:
 
 	void run()
 	{
-		QueryResult * result = m_realm->GetDB()->Query("SELECT class,race,money,totaltime,online,level,gender FROM characters WHERE name = '%s'", m_realm->GetDB()->EscapeString(m_playerName).c_str());
+		QueryResult result = m_realm->GetDB()->Query("SELECT class,race,money,totaltime,online,level,gender FROM characters WHERE name = '%s'", m_realm->GetDB()->EscapeString(m_playerName).c_str());
 		if(!result)
 			return;
 
@@ -53,7 +53,6 @@ public:
 			sGender,
 			(iOnline) ? "online" : "offline"
 		);
-		delete result;
 	}
 
 	static Command* Create(IRCSession* pSession, string target, string sender, string text)

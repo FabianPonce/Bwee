@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 
 CommandCreateMap m_createMap;
+size_t m_commandParserCount = 0;
 
 #define REGISTER_COMMAND(cmdName, createFunction) \
 	{ \
@@ -72,12 +73,20 @@ string Command::getRemainder()
 
 CommandParser::CommandParser(IRCSession* pSession) : m_session(pSession)
 {
-
+	m_commandParserCount++;
 }
 
 CommandParser::~CommandParser()
 {
-
+	if( --m_commandParserCount <= 0 )
+	{
+		CommandCreateMap::iterator itr = m_createMap.begin();
+		for(; itr != m_createMap.end(); ++itr)
+		{
+			delete itr->second;
+		}
+		m_createMap.clear();
+	}
 };
 
 void CommandParser::executeCommand(string target, string sender, string text)

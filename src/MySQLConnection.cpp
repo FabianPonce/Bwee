@@ -82,7 +82,7 @@ void MySQLConnection::QueryASync(mySQLCallback callback, const char * query, ...
 	AsynchronousQueries.push_back(pQuery);
 }
 
-QueryResult* MySQLConnection::Query(const char * query, ...)
+QueryResult MySQLConnection::Query(const char * query, ...)
 {
 	char sql[16384];
 	va_list vlist;
@@ -93,7 +93,6 @@ QueryResult* MySQLConnection::Query(const char * query, ...)
 	string querystring = string(sql);
 
 	Execute(querystring);
-	QueryResult * res;
 	MYSQL_RES * pRes = mysql_store_result( handle );
 	uint32 uRows = (uint32)mysql_affected_rows( handle );
 	uint32 uFields = (uint32)mysql_field_count( handle );
@@ -103,10 +102,11 @@ QueryResult* MySQLConnection::Query(const char * query, ...)
 		if( pRes != NULL )
 			mysql_free_result( pRes );
 
-		return NULL;
+		return QueryResult();
 	}
 
-	res = new QueryResult( pRes, uFields, uRows );
+	QueryResult res;
+	res = QueryResult(new _QueryResult(pRes, uFields, uRows));
 	res->NextRow();
 
 	return res;
@@ -139,7 +139,7 @@ void MySQLConnection::Update()
 			ASyncQuery * pQuery = AsynchronousQueries.front();
 			AsynchronousQueries.pop_front();
 
-			QueryResult * pResult = Query(pQuery->query.c_str());
+			QueryResult pResult = Query(pQuery->query.c_str());
 			if(pResult)
 			{
 				pQuery->callback(pResult);

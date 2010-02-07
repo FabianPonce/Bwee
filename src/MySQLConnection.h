@@ -22,7 +22,7 @@
 
 #include "StdAfx.h"
 
-typedef void(*mySQLCallback)(QueryResult*);
+typedef void(*mySQLCallback)(QueryResult);
 struct ASyncQuery
 {
 	mySQLCallback callback;
@@ -37,7 +37,7 @@ public:
 
 	void UseDatabase(string database);
 	void Execute(string query);
-	QueryResult* Query(const char * query, ...);
+	QueryResult Query(const char * query, ...);
 
 	string EscapeString(string Escape);
 

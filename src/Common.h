@@ -34,8 +34,13 @@
 #include <WinSock2.h>
 #include <mysql/mysql.h>
 
-using namespace std;
+#ifdef WIN32
+#include <memory>
+#else
+#include <tr1/memory>
+#endif
 
+using namespace std;
 
 #pragma warning(disable:4275)
 

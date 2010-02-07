@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 
-QueryResult::QueryResult(MYSQL_RES * res, uint32 uFields, uint32 uRows)
+_QueryResult::_QueryResult(MYSQL_RES * res, uint32 uFields, uint32 uRows)
 {
 	m_res = res;
 	mFields = uFields;
@@ -27,13 +27,13 @@ QueryResult::QueryResult(MYSQL_RES * res, uint32 uFields, uint32 uRows)
 	mCurrentRow = new Field[uFields];
 }
 
-QueryResult::~QueryResult()
+_QueryResult::~_QueryResult()
 {
 	mysql_free_result(m_res);
 	delete [] mCurrentRow;
 }
 
-bool QueryResult::NextRow()
+bool _QueryResult::NextRow()
 {
 	MYSQL_ROW row = mysql_fetch_row(m_res);
 	if(row == NULL)

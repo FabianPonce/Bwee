@@ -25,6 +25,7 @@
 #define CONN_CONNECTED 0
 #define CONN_REGISTERING 1
 #define CONN_REGISTERED 2
+#define CONN_QUITTING 3
 
 class MySQLConnection;
 class SimpleSocket;

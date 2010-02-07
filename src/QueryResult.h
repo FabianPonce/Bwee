@@ -24,11 +24,11 @@
 
 class Field;
 
-class QueryResult
+class _QueryResult
 {
 public:
-	QueryResult(MYSQL_RES * res, uint32 uFields, uint32 uRows);
-	~QueryResult();
+	_QueryResult(MYSQL_RES * res, uint32 uFields, uint32 uRows);
+	~_QueryResult();
 	bool NextRow();
 	Field* Fetch() { return mCurrentRow; }
 

@@ -78,7 +78,7 @@ public:
 
 	void run()
 	{
-		QueryResult* result = m_realm->GetDB()->Query("SELECT name,%s%s FROM characters WHERE guid NOT IN (SELECT guid FROM characters WHERE playerflags & 0x08) ORDER BY %s %s LIMIT 10", getDatabaseField(), getValueModifier(), getDatabaseField(), getDatabaseOrder());
+		QueryResult result = m_realm->GetDB()->Query("SELECT name,%s%s FROM characters WHERE guid NOT IN (SELECT guid FROM characters WHERE playerflags & 0x08) ORDER BY %s %s LIMIT 10", getDatabaseField(), getValueModifier(), getDatabaseField(), getDatabaseOrder());
 		if(!result)
 			return;
 

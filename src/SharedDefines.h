@@ -4,6 +4,9 @@
 #include "StdAfx.h"
 #define BWEE_CONFIGURATION_FILE "./bwee.conf"
 
+class _QueryResult;
+typedef std::tr1::shared_ptr<_QueryResult> QueryResult;
+
 enum Classes
 {
 	CLASS_WARRIOR = 1,
