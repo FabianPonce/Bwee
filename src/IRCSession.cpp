@@ -24,8 +24,37 @@ MessageHandlerMap IRCMessageHandlerMap;
 #define ADD_CODE(code,method) \
 	IRCMessageHandlerMap.insert( make_pair(code, method) );
 
+Mutex mCreateLock;
+
+void IRCSession::InitializeHandlers()
+{
+	mCreateLock.Acquire();
+	if( !IRCMessageHandlerMap.empty() )
+	{
+		mCreateLock.Release();
+		return;
+	}
+
+	// Populate the giant IRCSession handler table
+	ADD_CODE( RPL_SUCCESSFUL_AUTH, &IRCSession::HandleSuccessfulAuth)
+	ADD_CODE( RPL_MOTDSTART, &IRCSession::HandleMotdStart )
+	ADD_CODE( RPL_MOTD, &IRCSession::HandleMotd )
+	ADD_CODE( RPL_ENDOFMOTD, &IRCSession::HandleMotdStop )
+	ADD_CODE( RPL_NOTICE, &IRCSession::HandleNotice )
+	ADD_CODE( RPL_PRIVMSG, &IRCSession::HandlePrivmsg )
+	ADD_CODE( RPL_PING, &IRCSession::HandlePing )
+	ADD_CODE( RPL_PONG, &IRCSession::HandlePong )
+	ADD_CODE( RPL_KICK, &IRCSession::HandleKick );
+	ADD_CODE( RPL_NICK, &IRCSession::HandleNick );
+	ADD_CODE( RPL_ERR_NOTREGISTERED, &IRCSession::HandleErrNotRegistered );
+
+	mCreateLock.Release();
+}
+
 IRCSession::IRCSession(std::string config) : IRunnable()
 {
+	InitializeHandlers();
+
 	mConfigFile = NULL;
 	mConfig = config;
 	mSocket = NULL;
@@ -43,19 +72,6 @@ IRCSession::IRCSession(std::string config) : IRunnable()
 
 	mHasFullMotd = false;
 	mLastPing = GetTickCount();
-
-	// Populate the giant IRCSession handler table
-	ADD_CODE( RPL_SUCCESSFUL_AUTH, &IRCSession::HandleSuccessfulAuth)
-	ADD_CODE( RPL_MOTDSTART, &IRCSession::HandleMotdStart )
-	ADD_CODE( RPL_MOTD, &IRCSession::HandleMotd )
-	ADD_CODE( RPL_ENDOFMOTD, &IRCSession::HandleMotdStop )
-	ADD_CODE( RPL_NOTICE, &IRCSession::HandleNotice )
-	ADD_CODE( RPL_PRIVMSG, &IRCSession::HandlePrivmsg )
-	ADD_CODE( RPL_PING, &IRCSession::HandlePing )
-	ADD_CODE( RPL_PONG, &IRCSession::HandlePong )
-	ADD_CODE( RPL_KICK, &IRCSession::HandleKick );
-	ADD_CODE( RPL_NICK, &IRCSession::HandleNick );
-	ADD_CODE( RPL_ERR_NOTREGISTERED, &IRCSession::HandleErrNotRegistered );
 
 	mCmdParser = new CommandParser(this);
 

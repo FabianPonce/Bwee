@@ -76,6 +76,9 @@ string Command::getRemainder()
 CommandParser::CommandParser(IRCSession* pSession) : m_session(pSession)
 {
 	Guard g(m_commandParserMutex);
+	if( m_commandParserCount == 0 )
+		registerCommands();
+
 	m_commandParserCount++;
 }
 

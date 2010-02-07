@@ -113,6 +113,11 @@ public:
 	CommandParser* GetCommandParser() { return mCmdParser; }
 
 protected:
+	/*
+	 * Initializes message handlers table which tells which IRC message leads to which method.
+	 */
+	static void InitializeHandlers();
+
 	/* Message Handlers
 	* --------------------------------
 	* Invoked automatically by OnRecv. Do not invoke directly.
