@@ -313,7 +313,7 @@ void IRCSession::Update()
 			mConnState = CONN_REGISTERING;
 		}
 
-		if(mSocket->HasLine())
+		while(mSocket->HasLine())
 		{
 			string recv = mSocket->GetLine();
 			OnRecv(recv);
