@@ -28,6 +28,7 @@
 
 class MySQLConnection;
 class SimpleSocket;
+class CommandParser;
 
 enum MessageType
 {
@@ -107,6 +108,8 @@ public:
 	 */
 	ConfigFile* GetConfig() { return mConfigFile; }
 
+	CommandParser* GetCommandParser() { return mCmdParser; }
+
 protected:
 	/* Message Handlers
 	* --------------------------------
@@ -163,14 +166,13 @@ protected:
 	Realm **  m_realms;
 	std::map<std::string, uint32> m_realmMap;
 
-	// Time until we can accept a new privmsg "command"
-	uint32 mAntiSpamTicker;
-
 	// The random number generator
 	MTRand * mRandGenerator;
 
 	// Configuration File class
 	ConfigFile* mConfigFile;
+
+	CommandParser* mCmdParser;
 
 	// The thread we're running on
 	Thread * mThread;

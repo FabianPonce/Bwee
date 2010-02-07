@@ -57,7 +57,7 @@ IRCSession::IRCSession(std::string config) : IRunnable()
 	ADD_CODE( RPL_NICK, &IRCSession::HandleNick );
 	ADD_CODE( RPL_ERR_NOTREGISTERED, &IRCSession::HandleErrNotRegistered );
 
-	mAntiSpamTicker = 0;
+	mCmdParser = new CommandParser(this);
 
 	mThread = new Thread(this);
 	mThread->start();

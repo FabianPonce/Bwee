@@ -200,6 +200,34 @@
 				RelativePath=".\src\Replies.h"
 				>
 			</File>
+			<Filter
+				Name="Commands"
+				>
+				<File
+					RelativePath=".\src\CommandParser.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\CommandParser.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\OnlineCommand.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\PlayerInfoCommand.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\TestCommand.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\TopTenCommand.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Network"

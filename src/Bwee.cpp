@@ -34,6 +34,7 @@ int main()
 	WSAStartup(MAKEWORD(2,0), &info);
 #endif
 
+	CommandParser::registerCommands();
 	new IRCSession(BWEE_CONFIGURATION_FILE);
 	// Keep the main thread busy. Doo doo doooooo.
 	for(;;)

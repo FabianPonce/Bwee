@@ -3,6 +3,7 @@
 
 #include "MersenneTwister.h"
 #include "Common.h"
+#include "SharedDefines.h"
 #include "Log.h"
 #include "Config.h"
 #include "Thread.h"
@@ -18,6 +19,10 @@
 #include "IRCSession.h"
 #include "Singleton.h"
 
-#include "SharedDefines.h"
+#include "CommandParser.h"
+#include "TestCommand.h"
+#include "OnlineCommand.h"
+#include "TopTenCommand.h"
+#include "PlayerInfoCommand.h"
 
 #endif
