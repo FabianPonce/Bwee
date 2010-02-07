@@ -299,8 +299,8 @@ void IRCSession::OnRecv(string recvString)
 	IRCCallback cb = itr->second;
 	(this->*cb)(mess);
 
-	if(mess.argc)
-		delete [] mess.argv;
+	delete [] argv;
+	delete [] mess.argv;
 }
 
 void IRCSession::Update()
