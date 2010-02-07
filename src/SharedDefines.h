@@ -46,7 +46,7 @@ BWEE_INLINE const char* RaceToString(uint32 r)
 	if( r > 11 )
 		return "";
 
-	const char* r2s[] = { "", "human", "orc", "dwarf", "night elf", "undead", "tauren", "gnome", "troll", "blood elf", "draenei" };
+	const char* r2s[] = { "", "human", "orc", "dwarf", "night elf", "undead", "tauren", "gnome", "troll", "", "blood elf", "draenei" };
 	return r2s[r];
 }
 
