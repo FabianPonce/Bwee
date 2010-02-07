@@ -156,7 +156,7 @@ void IRCSession::HandlePrivmsg(IRCMessage& recvData)
 		if(recvData.args.length() <= secondSpace+1)
 			return;
 
-		const char* realm = recvData.args.substr(firstSpace+1,secondSpace-firstSpace+1).c_str();
+		string realm = recvData.args.substr(firstSpace+1,secondSpace-firstSpace+1);
 		MySQLConnection* mSQLConn = GetRealm(GetRealmID(realm))->GetDB();
 		string player = mSQLConn->EscapeString(recvData.args.substr(secondSpace+1));
 		QueryResult * result = mSQLConn->Query("SELECT level,race,class,totalKills,gender,online FROM characters WHERE name = '%s'", player.c_str());
@@ -265,7 +265,8 @@ void IRCSession::HandlePrivmsg(IRCMessage& recvData)
 			return;
 		}
 
-		QueryResult* result = mSQLConn->Query("SELECT name,%s FROM characters %s LIMIT 10", primarySelectData.c_str(), orderClause.c_str());
+		// 0x08 - PLAYER_FLAGS_GM
+		QueryResult* result = mSQLConn->Query("SELECT name,%s FROM characters WHERE guid NOT IN (SELECT guid FROM characters WHERE playerflags & 0x08) %s LIMIT 10", primarySelectData.c_str(), orderClause.c_str());
 		if(!result)
 		{
 			SendChatMessage(PRIVMSG, recvData.target.c_str(), "Internal error.");
