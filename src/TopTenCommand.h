@@ -13,6 +13,8 @@ public:
 	{
 	}
 
+	virtual const char* getHelpText() { return "Format: !topten $RealmName $Property\nFor a list of realms, type !realms.\nProperties include: level, gold, hkstoday, kills, honor, playedtime."; }
+
 	bool isSyntaxOk()
 	{
 		GET_REALM_FROM_PARAM_OR_FAIL(m_realm);

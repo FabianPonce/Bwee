@@ -24,5 +24,8 @@
 #include "OnlineCommand.h"
 #include "TopTenCommand.h"
 #include "PlayerInfoCommand.h"
+#include "RealmsCommand.h"
+#include "HelpCommand.h"
+#include "CommandsCommand.h"
 
 #endif

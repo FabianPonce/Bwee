@@ -12,6 +12,8 @@ public:
 	{
 	}
 
+	virtual const char* getHelpText() { return "Format: !online $RealmName\nFor a list of realms, type !realms."; }
+
 	bool isSyntaxOk()
 	{
 		GET_REALM_FROM_PARAM_OR_FAIL(m_realm);

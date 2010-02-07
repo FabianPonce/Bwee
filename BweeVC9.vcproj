@@ -212,11 +212,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\CommandsCommand.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\HelpCommand.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\OnlineCommand.h"
 					>
 				</File>
 				<File
 					RelativePath=".\src\PlayerInfoCommand.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\RealmsCommand.h"
 					>
 				</File>
 				<File

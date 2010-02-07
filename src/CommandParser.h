@@ -29,6 +29,8 @@ public:
 
 	virtual bool isSyntaxOk() = 0;
 	virtual void run() = 0;
+	
+	virtual const char* getHelpText() { return "Help for this command is not available."; }
 
 	bool hasNextWord();
 	string getNextWord();
@@ -49,6 +51,10 @@ public:
 	static void registerCommand(CommandProto* cp);
 
 	void executeCommand(string target, string sender, string text);
+	void sendHelpTextForCommand(Command* c, string target);
+	void sendHelpTextForCommand(string commandName, string target);
+
+	string buildCommandList();
 };
 
 #endif

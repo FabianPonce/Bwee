@@ -13,9 +13,12 @@ CommandCreateMap m_createMap;
 void CommandParser::registerCommands()
 {
 	REGISTER_COMMAND("test", &TestCommand::Create);
+	REGISTER_COMMAND("help", &HelpCommand::Create);
+	REGISTER_COMMAND("commands", &CommandsCommand::Create);
+	REGISTER_COMMAND("realms", &RealmsCommand::Create);
 	REGISTER_COMMAND("online", &OnlineCommand::Create);
 	REGISTER_COMMAND("topten", &TopTenCommand::Create);
-	REGISTER_COMMAND("playerinfo", &PlayerInfoCommand::Create);
+	REGISTER_COMMAND("playerinfo", &PlayerInfoCommand::Create)
 }
 
 void CommandParser::registerCommand(CommandProto* cp)
@@ -30,11 +33,15 @@ Command::Command(IRCSession* pSession, string target, string sender, string text
 	m_sender = sender;
 	m_text = text;
 	m_readPos = 0;
-	getNextWord(); // throw out the first result as the command name.
+	if( hasNextWord() )
+		getNextWord(); // throw out the first result as the command name.
 }
 
 bool Command::hasNextWord()
 {
+	if( m_text.length() == 0 )
+		return false;
+
 	if( m_readPos >= m_text.length() - 1 )
 		return false;
 
@@ -43,9 +50,17 @@ bool Command::hasNextWord()
 
 string Command::getNextWord()
 {
-	size_t endPosition = m_text.find( ' ', m_readPos+2 );
-	// it's ok for endPosition == string::npos! we will return the remainder
-	string ret = m_text.substr(m_readPos+1, endPosition );
+	size_t endPosition = m_text.find( ' ', m_readPos+1 );
+
+	size_t uCount = endPosition - m_readPos - 1;
+	if( endPosition == string::npos )
+	{
+		size_t uReadPos = m_readPos + 1;
+		m_readPos = m_text.length();
+		return m_text.substr(uReadPos);
+	}
+
+	string ret = m_text.substr(m_readPos+1, uCount );
 	m_readPos = endPosition;
 	return ret;
 }
@@ -80,8 +95,74 @@ void CommandParser::executeCommand(string target, string sender, string text)
 
 			if( uCommand->isSyntaxOk() )
 				uCommand->run();
+			else
+				sendHelpTextForCommand(uCommand, target);
 
 			delete uCommand;
 		}
 	}
+}
+
+void CommandParser::sendHelpTextForCommand(string commandName, string target)
+{
+	// Locate the command we're searching for.
+	CommandCreateMap::iterator itr = m_createMap.begin();
+	for(; itr != m_createMap.end(); ++itr)
+	{
+		if( strnicmp(commandName.c_str(), itr->first.c_str(), commandName.length()) == 0 )
+		{
+			CommandCreate cr = itr->second->createFunc;
+			Command * uCommand = (Command*) (*cr)(m_session, target, "", "");
+			sendHelpTextForCommand(uCommand, target);
+			delete uCommand;
+			return;
+		}
+	}
+
+	m_session->SendChatMessage(PRIVMSG, target.c_str(), "There is no such command.");
+}
+
+void CommandParser::sendHelpTextForCommand(Command* c, string target)
+{
+	string uHelpText = c->getHelpText();
+
+	if( uHelpText.length() == 0 )
+	{
+		m_session->SendChatMessage(PRIVMSG, target.c_str(), "Help for this command is not available.");
+		return;
+	}
+
+	size_t uLastLinePosition = -1; // Yes, this is right. We'll integer overflow into 0 in a moment for the first call.
+	size_t uNewLinePosition = uHelpText.find('\n');
+	if( uNewLinePosition == string::npos )
+	{
+		m_session->SendChatMessage(PRIVMSG, target.c_str(), uHelpText.c_str());
+		return;
+	}
+	
+	while( uNewLinePosition != string::npos )
+	{
+		size_t uCount = uNewLinePosition - uLastLinePosition;
+		string uHelpTextPart = uHelpText.substr(uLastLinePosition+1, uNewLinePosition - uLastLinePosition - 1);
+		m_session->SendChatMessage(PRIVMSG, target.c_str(), uHelpTextPart.c_str());
+		uLastLinePosition = uNewLinePosition;
+		uNewLinePosition = uHelpText.find('\n', uLastLinePosition+1);
+	}
+
+	string uHelpTextPart = uHelpText.substr( uLastLinePosition + 1 );
+	m_session->SendChatMessage(PRIVMSG, target.c_str(), uHelpTextPart.c_str());
+}
+
+string CommandParser::buildCommandList()
+{
+	std::stringstream ss;
+	CommandCreateMap::iterator itr = m_createMap.begin();
+	for(; itr != m_createMap.end(); ++itr)
+	{
+		ss << itr->first << ", ";
+	}
+	string uRet = ss.str();
+	// Remove last ", "
+	uRet = uRet.substr(0, uRet.length()-2);
+	return uRet;
 }

@@ -97,6 +97,7 @@ public:
 
 	Realm* GetRealm(uint32 id) { return m_realms[id]; }
 	uint32 GetRealmID(std::string n);
+	uint32 GetRealmCount() { return m_realmMap.size(); }
 
 	/*
 	 * Sends NICK and USER responses to the server.
