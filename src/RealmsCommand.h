@@ -17,7 +17,7 @@ public:
 
 	void run()
 	{
-		if( !GetSession()->GetRealm(0) )
+		if( GetSession()->GetRealmCount() == 0 )
 		{
 			GetSession()->SendChatMessage(PRIVMSG, m_target.c_str(), "There are no defined realms.");
 			return;
