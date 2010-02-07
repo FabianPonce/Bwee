@@ -58,6 +58,9 @@ public:
 			return "totalHonorPoints";
 		else if(m_field == "playedtime")
 			return "totaltime";
+
+		Log.Error("TopTenCommand", "Unrecognized field %s.", m_field.c_str());
+		return "";
 	}
 
 	const char* getDatabaseOrder()

@@ -176,5 +176,6 @@ __forceinline uint32 getMSTime()
 extern CLog Log;
 
 #define strlwr _strlwr
+#define strnicmp _strnicmp
 
 #endif
