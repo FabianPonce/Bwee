@@ -189,18 +189,18 @@ void IRCSession::OnRecv(string recvString)
 
 	// Make these just giant arrays of null strings.
 	// This will allow for .c_str() to properly transfer the char arrays to the console
-	memset(hostmask, '\0', 255);
-	memset(opcode, '\0', 255);
-	memset(target, '\0', 255);
-	memset(args, '\0', 4095);
-	memset(source_nick, '\0', 255);
-	memset(source_host, '\0', 255);
+	memset(hostmask, '\0', 256);
+	memset(opcode, '\0', 256);
+	memset(target, '\0', 256);
+	memset(args, '\0', 4096);
+	memset(source_nick, '\0', 256);
+	memset(source_host, '\0', 256);
 
 	uint32 r = sscanf(recvString.c_str(), ":%255s %255s %255s :%4095[^\r\n]", hostmask, opcode, target, args);
 	if(r != 4)
 	{
 		// Parsing failed, let's go to the fallback method. :P
-		r = sscanf(recvString.c_str(), ":%s %s %s", hostmask, opcode, args);
+		r = sscanf(recvString.c_str(), ":%255s %255s %4095[^\r\n]", hostmask, opcode, args);
 	}
 
 	// Fallback method, argc/argv
