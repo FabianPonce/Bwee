@@ -28,7 +28,7 @@ protected:
 	SOCKET m_fd;
 	sockaddr_in m_client;
 
-	CRITICAL_SECTION buffer_lock;
+	FastMutex buffer_lock;
 	string m_outBuf;
 	string m_inBuf;
 
@@ -50,7 +50,7 @@ public:
 
 protected:
 	typedef set<SimpleSocket*> SocketSet;
-	CRITICAL_SECTION socket_lock;
+	FastMutex socket_lock;
 	SocketSet m_sockets;
 };
 

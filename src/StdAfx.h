@@ -7,6 +7,7 @@
 #include "Log.h"
 #include "Config.h"
 #include "Thread.h"
+#include "Mutex.h"
 #include "SimpleSocket.h"
 
 #include "Field.h"

@@ -46,6 +46,7 @@ public:
 	void QueryASync(mySQLCallback callback, const char * query, ...);
 
 protected:
+	Mutex mMutex;
 	MYSQL* handle;
 
 	string mHost;

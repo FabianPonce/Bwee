@@ -2,6 +2,7 @@
 
 CommandCreateMap m_createMap;
 size_t m_commandParserCount = 0;
+Mutex m_commandParserMutex;
 
 #define REGISTER_COMMAND(cmdName, createFunction) \
 	{ \
@@ -24,6 +25,7 @@ void CommandParser::registerCommands()
 
 void CommandParser::registerCommand(CommandProto* cp)
 {
+	Guard g(m_commandParserMutex);
 	m_createMap.insert( make_pair(cp->commandName, cp) );
 }
 
@@ -73,11 +75,13 @@ string Command::getRemainder()
 
 CommandParser::CommandParser(IRCSession* pSession) : m_session(pSession)
 {
+	Guard g(m_commandParserMutex);
 	m_commandParserCount++;
 }
 
 CommandParser::~CommandParser()
 {
+	Guard g(m_commandParserMutex);
 	if( --m_commandParserCount <= 0 )
 	{
 		CommandCreateMap::iterator itr = m_createMap.begin();

@@ -7,12 +7,11 @@ SimpleSocket::SimpleSocket()
 	m_sendCount = 0;
 	m_sendPerPeriod = 3;
 	m_lastSendTime = time(NULL);
-	InitializeCriticalSection(&buffer_lock);
 }
 
 SimpleSocket::~SimpleSocket()
 {
-	DeleteCriticalSection(&buffer_lock);
+
 }
 
 void SimpleSocket::UpdateQueue()
@@ -23,7 +22,7 @@ void SimpleSocket::UpdateQueue()
 		return;
 
 	m_lastSendTime = nt;
-	EnterCriticalSection(&buffer_lock);
+	buffer_lock.Acquire();
 	while( m_sendQueue.size() )
 	{
 		c++;
@@ -32,7 +31,7 @@ void SimpleSocket::UpdateQueue()
 		if( c >= m_sendPerPeriod )
 			break;
 	}
-	LeaveCriticalSection(&buffer_lock);
+	buffer_lock.Release();
 	m_sendCount = c;
 }
 
@@ -44,26 +43,26 @@ void SimpleSocket::SendLine(string line)
 		return;
 	}
 
-	EnterCriticalSection(&buffer_lock);
+	buffer_lock.Acquire();
 	m_outBuf.append(line.c_str(), line.length());
-	LeaveCriticalSection(&buffer_lock);
+	buffer_lock.Release();
 	m_sendCount++;
 }
 
 void SimpleSocket::SendForcedLine(string line)
 {
-	EnterCriticalSection(&buffer_lock);
+	buffer_lock.Acquire();
 	m_outBuf.append(line.c_str(), line.length());
-	LeaveCriticalSection(&buffer_lock);
+	buffer_lock.Release();
 }
 
 bool SimpleSocket::HasLine()
 {
 	bool ret = false;
-	EnterCriticalSection(&buffer_lock);
+	buffer_lock.Acquire();
 	if( m_inBuf.find("\n") != string::npos )
 		ret = true;		
-	LeaveCriticalSection(&buffer_lock);
+	buffer_lock.Release();
 	return ret;
 }
 
@@ -74,7 +73,7 @@ string SimpleSocket::GetLine()
 	string ret;
 	char c;
 
-	EnterCriticalSection(&buffer_lock);
+	buffer_lock.Acquire();
 	for( ;; )
 	{
 		c = m_inBuf[0];
@@ -85,7 +84,7 @@ string SimpleSocket::GetLine()
 		
 		ret.append(&c, 1);
 	}
-	LeaveCriticalSection(&buffer_lock);
+	buffer_lock.Release();
 	return ret;
 }
 
@@ -141,24 +140,22 @@ void SimpleSocket::Disconnect()
 
 void SocketMgr::AddSocket(SimpleSocket *pSocket)
 {
-	EnterCriticalSection(&socket_lock);
+	socket_lock.Acquire();
 	m_sockets.insert(pSocket);
-	LeaveCriticalSection(&socket_lock);
+	socket_lock.Release();
 }
 
 void SocketMgr::RemoveSocket(SimpleSocket *pSocket)
 {
-	EnterCriticalSection(&socket_lock);
+	socket_lock.Acquire();
 	m_sockets.erase(pSocket);
-	LeaveCriticalSection(&socket_lock);
+	socket_lock.Release();
 }
 
 SocketMgr::SocketMgr()
 {
 	Thread *p = new Thread(this);
 	p->start();
-
-	InitializeCriticalSection(&socket_lock);
 }
 
 void SocketMgr::Update()
@@ -183,7 +180,7 @@ void SocketMgr::Update()
 		FD_ZERO(&write_set);
 		FD_ZERO(&exception_set);
 
-		EnterCriticalSection(&socket_lock);
+		socket_lock.Acquire();
 		for( itr = m_sockets.begin(); itr != m_sockets.end(); ++itr )
 		{
 			if( (*itr)->m_fd >= max_fd )
@@ -194,11 +191,11 @@ void SocketMgr::Update()
 			else
 				FD_SET((*itr)->m_fd, &read_set);
 		}
-		LeaveCriticalSection(&socket_lock);
+		socket_lock.Release();
 		
 		res = select(max_fd, &read_set, &write_set, &exception_set, &tv);
 
-		EnterCriticalSection(&socket_lock);
+		socket_lock.Acquire();
 		for( itr = m_sockets.begin(); itr != m_sockets.end(); )
 		{
 			s = *itr;
@@ -219,28 +216,28 @@ void SocketMgr::Update()
 					continue;
 				}
 
-				EnterCriticalSection(&s->buffer_lock);
+				s->buffer_lock.Acquire();
 				s->m_inBuf.append(buffer, res);
-				LeaveCriticalSection(&s->buffer_lock);
+				s->buffer_lock.Release();
 			}
 
 			if( FD_ISSET(s->m_fd, &write_set) && s->m_outBuf.size() )
 			{
-				EnterCriticalSection(&s->buffer_lock);
+				s->buffer_lock.Acquire();
 				res = send(s->m_fd, s->m_outBuf.c_str(), (int)s->m_outBuf.size(), 0);
 				if( res <= 0 )
 				{
-					LeaveCriticalSection(&s->buffer_lock);
+					s->buffer_lock.Release();
 					s->m_fd = NULL;
 					continue;
 				}
 
 				s->m_outBuf.erase(0, res);
-				LeaveCriticalSection(&s->buffer_lock);
+				s->buffer_lock.Release();
 			}
 		}
 
-		LeaveCriticalSection(&socket_lock);
+		socket_lock.Release();
 	}
 }
 

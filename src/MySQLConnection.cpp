@@ -21,6 +21,7 @@
 
 MySQLConnection::MySQLConnection(string host, int port, string user, string password)
 {
+	Guard g(mMutex);
 	handle = mysql_init( NULL );
 	mysql_real_connect(handle, host.c_str(), user.c_str(), password.c_str(), "", port, "", 0);
 	if(!handle)
@@ -41,6 +42,7 @@ MySQLConnection::~MySQLConnection()
 
 void MySQLConnection::Execute(string query)
 {
+	Guard g(mMutex);
 	//dunno what it does ...leaving untouched 
 	int result = mysql_query(handle, query.c_str());
 
@@ -49,19 +51,6 @@ void MySQLConnection::Execute(string query)
 		uint32 errnom = mysql_errno(handle);
 		const char * reason = mysql_error(handle);
 		Log.Notice("MySQL", "Query Failed: %s\nReason: %s", query.c_str(), reason);
-
-		// Errors which require us to reconnect.
-		if(errnom == 2006 || errnom == 2008 || errnom == 2013 || errnom == 2055)
-		{
-			handle = mysql_init(NULL);
-			mysql_real_connect(handle, mHost.c_str(), mUser.c_str(), mPassword.c_str(), "", 3306, "", 0);
-			if(!handle)
-				return;
-
-			UseDatabase(mDatabase);
-
-			Execute(query);
-		}
 	}
 }
 
@@ -75,10 +64,12 @@ void MySQLConnection::QueryASync(mySQLCallback callback, const char * query, ...
 
 	string querystring = string(sql);
 
+
 	ASyncQuery * pQuery = new ASyncQuery;
 	pQuery->callback = callback;
 	pQuery->query = querystring;
 
+	Guard g(mMutex);
 	AsynchronousQueries.push_back(pQuery);
 }
 
@@ -91,8 +82,17 @@ QueryResult MySQLConnection::Query(const char * query, ...)
 	va_end(vlist);
 
 	string querystring = string(sql);
+	//dunno what it does ...leaving untouched 
+	Guard g(mMutex);
+	int result = mysql_query(handle, querystring.c_str());
 
-	Execute(querystring);
+	if(result > 0)
+	{
+		uint32 errnom = mysql_errno(handle);
+		const char * reason = mysql_error(handle);
+		Log.Notice("MySQL", "Query Failed: %s\nReason: %s", querystring.c_str(), reason);
+	}
+
 	MYSQL_RES * pRes = mysql_store_result( handle );
 	uint32 uRows = (uint32)mysql_affected_rows( handle );
 	uint32 uFields = (uint32)mysql_field_count( handle );
@@ -126,6 +126,7 @@ string MySQLConnection::EscapeString(string Escape)
 
 void MySQLConnection::UseDatabase(string database)
 {
+	Guard g(mMutex);
 	mysql_select_db(handle, database.c_str());
 	mDatabase = database;
 }
@@ -134,6 +135,7 @@ void MySQLConnection::Update()
 {
 	while(true)
 	{
+		Guard g(mMutex);
 		if(AsynchronousQueries.size() > 0)
 		{
 			ASyncQuery * pQuery = AsynchronousQueries.front();

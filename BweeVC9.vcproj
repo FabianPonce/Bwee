@@ -316,6 +316,18 @@
 				RelativePath=".\src\StdAfx.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Threading"
+			>
+			<File
+				RelativePath=".\src\Mutex.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Mutex.h"
+				>
+			</File>
 			<File
 				RelativePath=".\src\Thread.h"
 				>
