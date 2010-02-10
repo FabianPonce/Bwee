@@ -3,6 +3,7 @@
 
 #include "MersenneTwister.h"
 #include "Common.h"
+#include "WordStringReader.h"
 #include "SharedDefines.h"
 #include "Log.h"
 #include "Config.h"
@@ -21,6 +22,7 @@
 #include "Singleton.h"
 
 #include "CommandParser.h"
+#include "NullCommand.h"
 #include "TestCommand.h"
 #include "OnlineCommand.h"
 #include "TopTenCommand.h"

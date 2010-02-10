@@ -220,6 +220,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\NullCommand.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\OnlineCommand.h"
 					>
 				</File>
@@ -314,6 +318,14 @@
 			</File>
 			<File
 				RelativePath=".\src\StdAfx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\WordStringReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\WordStringReader.h"
 				>
 			</File>
 		</Filter>

@@ -17,8 +17,17 @@ public:
 
 	void run()
 	{
-		string uResult = "Available commands include: " + GetSession()->GetCommandParser()->buildCommandList();
+		string uCmd = m_reader.getRemainder();
+		if( uCmd.length() )
+		{
+			string uResult = GetSession()->GetCommandParser()->buildCommandList(uCmd);
+			GetSession()->SendChatMessage(PRIVMSG, m_target.c_str(), uResult.c_str());
+			return;
+		}
+
+		string uResult = "Available commands include: " + GetSession()->GetCommandParser()->buildCommandList() + ".";
 		GetSession()->SendChatMessage(PRIVMSG, m_target.c_str(), uResult.c_str());
+		GetSession()->SendChatMessage(PRIVMSG, m_target.c_str(), "You may use !commands $Command to get a list of subcommands for commands with astericks by their names.");
 	}
 
 	static Command* Create(IRCSession* pSession, string target, string sender, string text)

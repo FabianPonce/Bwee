@@ -20,10 +20,10 @@ public:
 	{
 		GET_REALM_FROM_PARAM_OR_FAIL(m_realm);
 
-		if( !hasNextWord() )
+		if( !m_reader.hasNextWord() )
 			return false;
 
-		m_playerName = getNextWord();
+		m_playerName = m_reader.getNextWord();
 		return true;
 	}
 

@@ -90,7 +90,7 @@ void IRCSession::HandlePrivmsg(IRCMessage& recvData)
 	Log.Color(TNORMAL);
 
 	// It's a command!
-	if(recvData.args.substr(0, 1) == "!")
+	if(recvData.args[0] == '!')
 	{
 		GetCommandParser()->executeCommand(recvData.target, recvData.source_user, recvData.args);
 		return;

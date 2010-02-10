@@ -16,10 +16,10 @@ public:
 
 	bool isSyntaxOk()
 	{
-		if( !hasNextWord() )
+		if( !m_reader.hasNextWord() )
 			return false;
 
-		m_commandName = getNextWord();
+		m_commandName = m_reader.getRemainder();
 		return true;
 	}
 
