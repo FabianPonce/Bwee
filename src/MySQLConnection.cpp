@@ -29,7 +29,7 @@ MySQLConnection::MySQLConnection(string host, int port, string user, string pass
 		Log.Notice("mySQL", "Error connecting to database on %s", host.c_str());
 		return;
 	}
-
+	mPort = port;
 	mHost = host;
 	mUser = user;
 	mPassword = password;
@@ -37,12 +37,16 @@ MySQLConnection::MySQLConnection(string host, int port, string user, string pass
 
 MySQLConnection::~MySQLConnection()
 {
-
+	if(handle)
+		mysql_close(handle);
 }
 
 void MySQLConnection::Execute(string query)
 {
 	Guard g(mMutex);
+	if(!handle)
+		_reconnect();
+
 	//dunno what it does ...leaving untouched 
 	int result = mysql_query(handle, query.c_str());
 
@@ -51,26 +55,13 @@ void MySQLConnection::Execute(string query)
 		uint32 errnom = mysql_errno(handle);
 		const char * reason = mysql_error(handle);
 		Log.Notice("MySQL", "Query Failed: %s\nReason: %s", query.c_str(), reason);
+
+		if( errnom == 2006 || errnom == 2008 || errnom == 2013 || errnom == 2055 )
+		{
+			_reconnect();
+			Execute(query);
+		}
 	}
-}
-
-void MySQLConnection::QueryASync(mySQLCallback callback, const char * query, ...)
-{
-	char sql[16384];
-	va_list vlist;
-	va_start(vlist, query);
-	vsnprintf(sql, 16384, query, vlist);
-	va_end(vlist);
-
-	string querystring = string(sql);
-
-
-	ASyncQuery * pQuery = new ASyncQuery;
-	pQuery->callback = callback;
-	pQuery->query = querystring;
-
-	Guard g(mMutex);
-	AsynchronousQueries.push_back(pQuery);
 }
 
 QueryResult MySQLConnection::Query(const char * query, ...)
@@ -84,6 +75,9 @@ QueryResult MySQLConnection::Query(const char * query, ...)
 	string querystring = string(sql);
 	//dunno what it does ...leaving untouched 
 	Guard g(mMutex);
+	if(!handle)
+		_reconnect();
+
 	int result = mysql_query(handle, querystring.c_str());
 
 	if(result > 0)
@@ -91,6 +85,12 @@ QueryResult MySQLConnection::Query(const char * query, ...)
 		uint32 errnom = mysql_errno(handle);
 		const char * reason = mysql_error(handle);
 		Log.Notice("MySQL", "Query Failed: %s\nReason: %s", querystring.c_str(), reason);
+
+		if( errnom == 2006 || errnom == 2008 || errnom == 2013 || errnom == 2055 )
+		{
+			_reconnect();
+			Query(querystring.c_str());
+		}
 	}
 
 	MYSQL_RES * pRes = mysql_store_result( handle );
@@ -131,23 +131,21 @@ void MySQLConnection::UseDatabase(string database)
 	mDatabase = database;
 }
 
-void MySQLConnection::Update()
+void MySQLConnection::_reconnect()
 {
-	while(true)
+	for(;;)
 	{
-		Guard g(mMutex);
-		if(AsynchronousQueries.size() > 0)
+		if(handle)
+			mysql_close( handle );
+	
+		handle = mysql_init(NULL);
+		mysql_real_connect(handle, mHost.c_str(), mUser.c_str(), mPassword.c_str(), mDatabase.c_str(), mPort, NULL, 0);
+		if( handle == NULL )
 		{
-			ASyncQuery * pQuery = AsynchronousQueries.front();
-			AsynchronousQueries.pop_front();
-
-			QueryResult pResult = Query(pQuery->query.c_str());
-			if(pResult)
-			{
-				pQuery->callback(pResult);
-			}
+			Log.Error("mySQL", "Unable to reconnect to mySQL server!");
+			continue;
 		}
 
-		Sleep(100);
+		break;
 	}
 }

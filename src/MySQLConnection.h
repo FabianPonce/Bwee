@@ -29,7 +29,7 @@ struct ASyncQuery
 	string query;
 };
 
-class MySQLConnection : IRunnable
+class MySQLConnection
 {
 public:
 	MySQLConnection(string host, int port, string user, string password);
@@ -41,20 +41,17 @@ public:
 
 	string EscapeString(string Escape);
 
-	void Update();
-
-	void QueryASync(mySQLCallback callback, const char * query, ...);
-
 protected:
+	void _reconnect();
+
 	Mutex mMutex;
 	MYSQL* handle;
 
+	int mPort;
 	string mHost;
 	string mUser;
 	string mPassword;
 	string mDatabase;
-
-	deque<ASyncQuery*> AsynchronousQueries;
 };
 
 #endif
