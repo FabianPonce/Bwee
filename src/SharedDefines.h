@@ -55,15 +55,4 @@ BWEE_INLINE const char* RaceToString(uint32 r)
 
 #define DEFAULT_TEXT_HELP_NOT_AVAILABLE "Help for this command is not available."
 
-#define GET_REALM_OR_FAIL(realm,variable) \
-	variable = GetSession()->GetRealm( GetSession()->GetRealmID(realm) ); \
-	if( !variable ) \
-		return false;
-
-#define GET_REALM_FROM_PARAM_OR_FAIL(var) \
-	if( !m_reader.hasNextWord() ) \
-	return false; \
-	\
-	GET_REALM_OR_FAIL(m_reader.getNextWord(),var)
-
 #endif

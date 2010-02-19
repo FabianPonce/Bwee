@@ -65,54 +65,73 @@ struct IRCMessage
 class IRCSession : public IRunnable
 {
 public:
+	/*
+	 * Constructs a new IRCSession. 
+	 * @param config The location of a valid Bwee configuration file.
+	 */
 	IRCSession(std::string config);
 	~IRCSession();
 
 	/*
-	 * Rehashes the Bwee.conf configuration file.
+	 * Rehashes the Bwee.conf configuration file. Also initializes sockets and database connections if necessary.
 	 */
 	void RehashConfig();
 
 	/*
-	 * Outputs a message to the server. You need not include \n.
+	 * Outputs a message to the server. Do not include linebreaks.
+	 * This method supports printf-style formatting.
+	 * @param format The format string or plain text to send.
 	 */
 	void WriteLine(const char * format, ...);
 
 	/*
-	 * Callback for SimpleSocket I/O. Do not invoke directly.
+	 * Callback for SimpleSocket I/O. Do NOT invoke directly.
 	 */
 	void OnRecv(string recvString);
 
 	/*
-	 * Send a simple chat message. 
-	 * @param MessageType Either "PRIVMSG" or "NOTICE" now.
+	 * Send a chat message over this IRC session.
+	 * @param MessageType Either "PRIVMSG" or "NOTICE", depending on which type of chat message.
 	 * @param target The target of the message. Can be a channel or a user.
 	 * @param format The message to send. May include formatters such as %s, %u, etc.
 	 */
 	void SendChatMessage(MessageType type, const char * target, const char * format, ...);
 
 	/*
-	 * Updates the IRC Session. Do not invoke directly.
+	 * Updates the IRC Session. Do NOT invoke directly.
+	 * This method runs in it's own thread and is called continuously.
 	 */
 	void Update();
 
+	/* 
+	 * Returns a realm by it's index/id 
+	 * @param id The ID of the realm. This number MUST be valid or memory corruption will result.
+	 */
 	Realm* GetRealm(uint32 id) { return m_realms[id]; }
-	uint32 GetRealmID(std::string n);
-	uint32 GetRealmCount() { return (uint32)m_realmMap.size(); }
+	
+	/*
+	 * Returns a realm by it's name. Names are not case sensitive.
+	 * @param n The name of the realm (case insensitive).
+	 */
+	Realm* GetRealm(std::string n);
 
 	/*
-	 * Sends NICK and USER responses to the server.
+	 * Returns the number of registered realms.
 	 */
-	void SendIdentification();
+	uint32 GetRealmCount() { return (uint32)m_realmMap.size(); }
 
 	/*
 	 * Returns the configuration controller
 	 */
 	ConfigFile* GetConfig() { return mConfigFile; }
 
+	/*
+	 * Returns the CommandParser that is being used by this IRCSession.
+	 */
 	CommandParser* GetCommandParser() { return mCmdParser; }
 
-protected:
+private:
+
 	/*
 	 * Initializes message handlers table which tells which IRC message leads to which method.
 	 */
@@ -134,6 +153,11 @@ protected:
 	void HandleNick(IRCMessage& recvData);
 	void HandleErrNotRegistered(IRCMessage& recvData);
 	void HandleErrNickNameTaken(IRCMessage& recvData);
+
+	/*
+	* Sends NICK and USER responses to the server.
+	*/
+	void SendIdentification();
  
 	// the config file!
 	string mConfig;

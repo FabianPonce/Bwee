@@ -243,6 +243,10 @@
 					RelativePath=".\src\TopTenCommand.h"
 					>
 				</File>
+				<File
+					RelativePath=".\src\UpcomingPlayersCommand.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

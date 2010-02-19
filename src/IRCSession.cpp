@@ -403,7 +403,7 @@ void IRCSession::SendIdentification()
 	WriteLine("USER %s 8 * : %s", mNickName.c_str(), mNickName.c_str());
 }
 
-uint32 IRCSession::GetRealmID(std::string n)
+Realm* IRCSession::GetRealm(std::string n)
 {
 	std::map<std::string, uint32>::iterator itr = m_realmMap.begin();
 	for(; itr != m_realmMap.end(); ++itr)
@@ -413,8 +413,8 @@ uint32 IRCSession::GetRealmID(std::string n)
 
 		uint32 r = strnicmp(s.c_str(), n.c_str(), s.length());
 		if( r == 0 )
-			return itr->second;
+			return GetRealm(itr->second);
 	}
 
-	return 0;
+	return NULL;
 }

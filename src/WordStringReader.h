@@ -14,6 +14,7 @@ private:
 public:
 	/*
 	 * Initialize a new WordStringReader to iterate over text.
+	 * @param text The text that will be read by this object. Must not be an empty string.
 	 */
 	WordStringReader(std::string text);
 	
@@ -34,6 +35,7 @@ public:
 	size_t getReadPosition() { return m_readPos; }
 	/*
 	 * Sets the read position in the string.
+	 * @param rPos The new read position.
 	 */
 	void setReadPosition(size_t rPos) { m_readPos = rPos; }
 

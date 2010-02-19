@@ -17,7 +17,9 @@ public:
 
 	bool isSyntaxOk()
 	{
-		GET_REALM_FROM_PARAM_OR_FAIL(m_realm);
+		if( !(m_realm = ReadRealm()) )
+			return false;
+
 		return true;
 	}
 
