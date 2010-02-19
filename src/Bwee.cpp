@@ -35,7 +35,7 @@ int main()
 #endif
 
 	new IRCSession(BWEE_CONFIGURATION_FILE);
-	// Keep the main thread busy. Doo doo doooooo.
+	// Keep the main thread busy forever.
 	for(;;)
 	{
 		Sleep(1000); 

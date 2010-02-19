@@ -35,7 +35,7 @@ public:
 	MySQLConnection(string host, int port, string user, string password);
 	~MySQLConnection();
 
-	void UseDatabase(string database);
+	bool UseDatabase(string database);
 	void Execute(string query);
 	QueryResult Query(const char * query, ...);
 

@@ -4,8 +4,6 @@
 
 class NullCommand : public Command
 {
-private:
-	string m_commandName;
 public:
 	NullCommand(IRCSession* pSession, string target, string sender, string text) : Command(pSession, target, sender, text)
 	{

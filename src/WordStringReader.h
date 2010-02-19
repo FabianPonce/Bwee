@@ -12,10 +12,13 @@ private:
 	bool isFirstRead();
 
 public:
+	/*
+	 * Initialize a new WordStringReader to iterate over text.
+	 */
 	WordStringReader(std::string text);
 	
 	/*
-	* Returns true if there is a word ahead in the m_text string. Works by space-delimiting.
+	* Returns true if there is a word ahead in the m_text string.
 	*/
 	bool hasNextWord();
 
@@ -26,9 +29,12 @@ public:
 	string getNextWord();
 
 	/*
-	 * getReadPosition
+	 * Returns the current read position we're working from.
 	 */
 	size_t getReadPosition() { return m_readPos; }
+	/*
+	 * Sets the read position in the string.
+	 */
 	void setReadPosition(size_t rPos) { m_readPos = rPos; }
 
 	/*

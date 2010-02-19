@@ -35,5 +35,6 @@
 #define RPL_KICK			"KICK"
 
 #define RPL_ERR_NOTREGISTERED "451"
+#define RPL_ERR_NICKNAMETAKEN "433"
 
 #endif

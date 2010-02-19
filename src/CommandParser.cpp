@@ -22,8 +22,7 @@ void CommandParser::registerCommands()
 	REGISTER_COMMAND("online", &OnlineCommand::Create);
 	REGISTER_COMMAND("topten", &TopTenCommand::Create);
 	REGISTER_COMMAND("playerinfo", &PlayerInfoCommand::Create);
-	//REGISTER_COMMAND("admin", &NullCommand::Create);
-	//REGISTER_COMMAND("admin playerinfo", &PlayerInfoCommand::Create);
+	REGISTER_COMMAND("upcomingplayers", &UpcomingPlayersCommand::Create);
 }
 
 void CommandParser::registerCommand(CommandProto* cp)
@@ -130,12 +129,15 @@ void CommandParser::executeCommand(string target, string sender, string text)
 	CommandCreateMap::iterator itr = m_createMap.begin();
 	for(; itr != m_createMap.end(); ++itr)
 	{
+		// is this the right command?
 		if( strnicmp(itr->second->commandName.c_str(), commandName.c_str(), commandName.length()) == 0 )
 		{
 			CommandProto* uCmdProto = itr->second;
+			// are there subcommands after this command?
 			if( recursiveExecuteCommand(uCmdProto, target, sender, uReader.getRemainder() ) )	
 				return;
 
+			// run our command.
 			CommandCreate cr = itr->second->createFunc;
 			Command * c = (*cr)(m_session, target, sender, uReader.getRemainder());
 			if( c->isSyntaxOk() )
@@ -248,8 +250,7 @@ CommandProto* CommandParser::recursiveGetCommandProto(CommandProto* pProto, std:
 	string uSearcher = uReader.getNextWord();
 
 	std::map<std::string, CommandProto*>::iterator itr = pProto->m_subCommandMap.begin();
-	std::map<std::string, CommandProto*>* uSearchingMap = &pProto->m_subCommandMap;
-	for(; itr != uSearchingMap->end(); ++itr)
+	for(; itr != pProto->m_subCommandMap.end(); ++itr)
 	{
 		string uSubCommand = itr->first;
 		if( strnicmp( uSearcher.c_str(), uSubCommand.c_str(), uSearcher.length()) == 0 )

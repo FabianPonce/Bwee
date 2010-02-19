@@ -1,6 +1,6 @@
 /*
-* Aspire Hearthstone
-* Copyright (C) 2008 AspireDev <http://www.aspiredev.org/>
+* Ascent
+* Copyright (C) 2008 Ascent Team <http://www.ascentemu.com/>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU Affero General Public License as published by

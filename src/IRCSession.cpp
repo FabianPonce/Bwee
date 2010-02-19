@@ -47,6 +47,7 @@ void IRCSession::InitializeHandlers()
 	ADD_CODE( RPL_KICK, &IRCSession::HandleKick );
 	ADD_CODE( RPL_NICK, &IRCSession::HandleNick );
 	ADD_CODE( RPL_ERR_NOTREGISTERED, &IRCSession::HandleErrNotRegistered );
+	ADD_CODE( RPL_ERR_NICKNAMETAKEN, &IRCSession::HandleErrNickNameTaken );
 
 	mCreateLock.Release();
 }
@@ -181,9 +182,11 @@ IRCSession::~IRCSession()
 	delete mThread;
 
 	if(mSocket)
+	{
 		mSocket->Disconnect();
+		delete mSocket;
+	}
 
-	delete mSocket;
 	delete mCmdParser;
 	delete mRandGenerator;
 	delete mConfigFile;
@@ -198,7 +201,7 @@ IRCSession::~IRCSession()
 
 void IRCSession::OnRecv(string recvString)
 {
-	// HACK: PING
+	// HACK: PING (FIXME)
 	if( recvString.substr(0,4).compare("PING") == 0 )
 	{
 		WriteLine("PONG :%s", recvString.substr(6).c_str());
@@ -232,6 +235,7 @@ void IRCSession::OnRecv(string recvString)
 	}
 
 	// Fallback method, argc/argv
+	// This is so ugly and inefficient. Todo: redo me with WordStringReader
 	mess.argc = 0;
 	string *argv = new string[1024];
 	uint32 lastSpace = 0;
@@ -327,6 +331,12 @@ void IRCSession::Update()
 		{
 			SendIdentification();
 			mConnState = CONN_REGISTERING;
+		}
+
+		if( mNickNameRetry )
+		{
+			mNickNameRetry = 0;
+			SendIdentification();
 		}
 
 		while(mSocket->HasLine())

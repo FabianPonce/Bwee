@@ -29,7 +29,7 @@ public:
 
 	void run()
 	{
-		QueryResult result = m_realm->GetDB()->Query("SELECT class,race,money,totaltime,online,level,gender FROM characters WHERE name = '%s'", m_realm->GetDB()->EscapeString(m_playerName).c_str());
+		QueryResult result = m_realm->GetDB()->Query("SELECT class,race,money/10000,totaltime,online,level,gender FROM characters WHERE name = '%s'", m_realm->GetDB()->EscapeString(m_playerName).c_str());
 		if(!result)
 			return;
 
@@ -48,7 +48,7 @@ public:
 			iLevel,
 			RaceToString(iRace),
 			ClassToString(iClass),
-			iMoney / 100000,
+			iMoney,
 			iPlayed / 3600,
 			sGender,
 			(iOnline) ? "online" : "offline"

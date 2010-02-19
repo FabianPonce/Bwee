@@ -44,7 +44,7 @@ public:
 	virtual bool isSyntaxOk() = 0;
 
 	/*
-	 * Execute the command, doing it's actions. This method should be completely crash-safe assuming isSyntaxOk() passed.
+	 * Execute the command, doing it's actions. This method should be completely safe assuming isSyntaxOk() passed.
 	 */
 	virtual void run() = 0;
 	
@@ -102,7 +102,7 @@ public:
 	string buildCommandList(std::string commandName);
 
 	/*
-	 *
+	 * Returns the CommandProto of the specified command.
 	 */
 	static CommandProto* recursiveGetCommandProto(CommandProto* pProto, std::string cmdName);
 	static CommandProto* getCommandProto(std::string cmdName);

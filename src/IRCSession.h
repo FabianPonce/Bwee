@@ -133,6 +133,7 @@ protected:
 	void HandleKick(IRCMessage& recvData);
 	void HandleNick(IRCMessage& recvData);
 	void HandleErrNotRegistered(IRCMessage& recvData);
+	void HandleErrNickNameTaken(IRCMessage& recvData);
  
 	// the config file!
 	string mConfig;
@@ -183,6 +184,9 @@ protected:
 
 	// The thread we're running on
 	Thread * mThread;
+
+	// nickRetry
+	uint32 mNickNameRetry;
 };
 typedef void(IRCSession::*IRCCallback)(IRCMessage& recvData);
 typedef std::map<std::string, IRCCallback> MessageHandlerMap;

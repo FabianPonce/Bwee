@@ -144,3 +144,9 @@ void IRCSession::HandleNick(IRCMessage& recvData)
 	printf("%s\n", recvData.args.c_str());
 	Log.Color(TNORMAL);
 }
+
+void IRCSession::HandleErrNickNameTaken(IRCMessage& recvData)
+{
+	mNickNameRetry++;
+	WriteLine("NICK %s%u", mNickName.c_str(), mNickNameRetry);
+}

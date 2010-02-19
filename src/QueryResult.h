@@ -1,6 +1,6 @@
 /*
-* Bwee IRC Bot
-* Copyright (C) 2010 Valroft <http://www.mintwow.com/>
+* Ascent
+* Copyright (C) 2008 Ascent Team <http://www.ascentemu.com/>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU Affero General Public License as published by

@@ -30,5 +30,6 @@
 #include "RealmsCommand.h"
 #include "HelpCommand.h"
 #include "CommandsCommand.h"
+#include "UpcomingPlayersCommand.h"
 
 #endif

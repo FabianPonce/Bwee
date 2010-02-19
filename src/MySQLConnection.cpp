@@ -47,7 +47,6 @@ void MySQLConnection::Execute(string query)
 	if(!handle)
 		_reconnect();
 
-	//dunno what it does ...leaving untouched 
 	int result = mysql_query(handle, query.c_str());
 
 	if(result > 0)
@@ -73,7 +72,6 @@ QueryResult MySQLConnection::Query(const char * query, ...)
 	va_end(vlist);
 
 	string querystring = string(sql);
-	//dunno what it does ...leaving untouched 
 	Guard g(mMutex);
 	if(!handle)
 		_reconnect();
@@ -124,11 +122,11 @@ string MySQLConnection::EscapeString(string Escape)
 	return string(ret);
 }
 
-void MySQLConnection::UseDatabase(string database)
+bool MySQLConnection::UseDatabase(string database)
 {
 	Guard g(mMutex);
-	mysql_select_db(handle, database.c_str());
 	mDatabase = database;
+	return mysql_select_db(handle, database.c_str()) <= 0;
 }
 
 void MySQLConnection::_reconnect()
@@ -145,6 +143,14 @@ void MySQLConnection::_reconnect()
 			Log.Error("mySQL", "Unable to reconnect to mySQL server!");
 			continue;
 		}
+
+		if( mysql_select_db(handle, mDatabase.c_str()) > 0 )
+		{
+			Log.Error("mySQL", "Unable to select database %s.", mDatabase.c_str());
+			continue;
+		}
+
+		Log.Notice("mySQL", "Reconnected successfully.");
 
 		break;
 	}
