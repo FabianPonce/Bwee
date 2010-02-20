@@ -410,7 +410,7 @@ ConfigSetting * ConfigFile::GetSetting(const char * Block, const char * Setting)
 	return 0;
 }
 
-bool ConfigFile::GetString(const char * block, const char* name, std::string *value)
+bool ConfigFile::GetString(const char * block, const char* name, string *value)
 {
 	ConfigSetting * Setting = GetSetting(block, name);
 	if(Setting == 0)
@@ -421,7 +421,7 @@ bool ConfigFile::GetString(const char * block, const char* name, std::string *va
 }
 
 
-std::string ConfigFile::GetStringDefault(const char * block, const char* name, const char* def)
+string ConfigFile::GetStringDefault(const char * block, const char* name, const char* def)
 {
 	string ret;
 	return GetString(block, name, &ret) ? ret : def;
@@ -499,7 +499,7 @@ float ConfigFile::GetFloatVA(const char * block, float def, const char* name, ..
 	return GetFloat(str, block, &val) ? val : def;
 }
 
-std::string ConfigFile::GetStringVA(const char * block, const char* def, const char * name, ...)
+string ConfigFile::GetStringVA(const char * block, const char* def, const char * name, ...)
 {
 	va_list ap;
 	va_start(ap, name);

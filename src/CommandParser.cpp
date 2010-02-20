@@ -95,9 +95,8 @@ bool CommandParser::recursiveExecuteCommand(CommandProto* pBaseCmd, string targe
 
 	string uSearcher = uReader.getNextWord();
 
-	std::map<std::string, CommandProto*>::iterator itr = pBaseCmd->m_subCommandMap.begin();
-	std::map<std::string, CommandProto*>* uSearchingMap = &pBaseCmd->m_subCommandMap;
-	for(; itr != uSearchingMap->end(); ++itr)
+	map<string, CommandProto*>::iterator itr = pBaseCmd->m_subCommandMap.begin();
+	for(; itr != pBaseCmd->m_subCommandMap.end(); ++itr)
 	{
 		string uSubCommand = itr->first;
 		if( strnicmp( uSearcher.c_str(), uSubCommand.c_str(), uSearcher.length()) == 0 )
@@ -197,7 +196,7 @@ void CommandParser::sendHelpTextForCommand(Command* c, string target)
 
 string CommandParser::buildCommandList()
 {
-	std::stringstream ss;
+	stringstream ss;
 	CommandCreateMap::iterator itr = m_createMap.begin();
 	for(; itr != m_createMap.end(); ++itr)
 	{
@@ -213,7 +212,7 @@ string CommandParser::buildCommandList()
 	return uRet;
 }
 
-string CommandParser::buildCommandList(std::string commandName)
+string CommandParser::buildCommandList(string commandName)
 {
 	CommandProto* cp = getCommandProto(commandName);
 	if(!cp)
@@ -222,9 +221,9 @@ string CommandParser::buildCommandList(std::string commandName)
 	if( cp->m_subCommandMap.empty() )
 		return "No subcommands.";
 
-	std::stringstream ss;
+	stringstream ss;
 	ss << commandName << " commands: ";
-	std::map<std::string, CommandProto*>::iterator itr = cp->m_subCommandMap.begin();
+	map<string, CommandProto*>::iterator itr = cp->m_subCommandMap.begin();
 	for(; itr != cp->m_subCommandMap.end(); ++itr)
 	{
 		ss << itr->first;
@@ -238,7 +237,7 @@ string CommandParser::buildCommandList(std::string commandName)
 	return uRet;
 }
 
-CommandProto* CommandParser::recursiveGetCommandProto(CommandProto* pProto, std::string cmdName)
+CommandProto* CommandParser::recursiveGetCommandProto(CommandProto* pProto, string cmdName)
 {
 	if( pProto->m_subCommandMap.empty() )
 		return NULL;
@@ -249,7 +248,7 @@ CommandProto* CommandParser::recursiveGetCommandProto(CommandProto* pProto, std:
 
 	string uSearcher = uReader.getNextWord();
 
-	std::map<std::string, CommandProto*>::iterator itr = pProto->m_subCommandMap.begin();
+	map<string, CommandProto*>::iterator itr = pProto->m_subCommandMap.begin();
 	for(; itr != pProto->m_subCommandMap.end(); ++itr)
 	{
 		string uSubCommand = itr->first;
@@ -266,7 +265,7 @@ CommandProto* CommandParser::recursiveGetCommandProto(CommandProto* pProto, std:
 	return NULL;
 }
 
-CommandProto* CommandParser::getCommandProto(std::string cmdName)
+CommandProto* CommandParser::getCommandProto(string cmdName)
 {
 	// get the first word of the text, exclude the first letter.
 	WordStringReader uReader(cmdName);

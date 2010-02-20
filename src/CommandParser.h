@@ -14,7 +14,7 @@ struct CommandProto
 	string commandName;
 	CommandCreate createFunc;
 
-	std::map<std::string, CommandProto*> m_subCommandMap;
+	map<string, CommandProto*> m_subCommandMap;
 };
 
 // Lookup map for CommandParser class
@@ -136,13 +136,13 @@ public:
 	 * Builds and returns a comma-separated list of commands that are registered as subcommands of the given command.
 	 * @param commandName The command that is assumed to have subcommands, which will be listed for.
 	 */
-	string buildCommandList(std::string commandName);
+	string buildCommandList(string commandName);
 
 	/*
 	 * Returns the CommandProto of the specified command.
 	 * @param cmdName The command to search for (supports recursion/subcommands)
 	 */
-	static CommandProto* getCommandProto(std::string cmdName);
+	static CommandProto* getCommandProto(string cmdName);
 
 	/*
 	 * Recursively search for subcommands of a given command, by their full command name. Should absolutely NOT
@@ -150,7 +150,7 @@ public:
 	 * @param pProto The base command which will have it's subcommands analyzed.
 	 * @param cmdName The full target command name that is being searched for.
 	 */
-	static CommandProto* recursiveGetCommandProto(CommandProto* pProto, std::string cmdName);
+	static CommandProto* recursiveGetCommandProto(CommandProto* pProto, string cmdName);
 };
 
 #endif

@@ -4,7 +4,7 @@
 struct Realm
 {
 private:
-	std::string m_name;
+	string m_name;
 	MySQLConnection* m_db;
 
 public:
@@ -13,7 +13,7 @@ public:
 	 * @param name The name of the realm
 	 * @param dbConn A database connection to the character database associated with this realm.
 	 */
-	Realm(std::string name, MySQLConnection* dbConn)
+	Realm(string name, MySQLConnection* dbConn)
 	{
 		this->m_name = name;
 		m_db = dbConn;
@@ -27,7 +27,7 @@ public:
 	/*
 	 * Returns the name of this realm, as defined in the configuration file it was loaded from.
 	 */
-	std::string GetName() { return m_name; }
+	string GetName() { return m_name; }
 };
 
 #endif

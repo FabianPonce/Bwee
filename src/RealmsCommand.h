@@ -23,7 +23,7 @@ public:
 			return;
 		}
 
-		std::stringstream ss;
+		stringstream ss;
 		ss << "Available realms include: ";
 		uint32 uRealmCount = GetSession()->GetRealmCount();
 		for(uint32 i = 0; i < uRealmCount; ++i) 

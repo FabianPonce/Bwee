@@ -325,6 +325,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Util.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\WordStringReader.cpp"
 				>
 			</File>
@@ -346,6 +350,14 @@
 			</File>
 			<File
 				RelativePath=".\src\Thread.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ThreadPool.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ThreadPool.h"
 				>
 			</File>
 		</Filter>

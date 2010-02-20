@@ -4,8 +4,13 @@
 #include "StdAfx.h"
 #define BWEE_CONFIGURATION_FILE "./bwee.conf"
 
+#define IRCSESSION_UPDATE_INTERVAL 100
+
+#define sBweeStopEvent BweeGlobalStopEvent::getSingleton()
+#define sThreadPool ThreadPool::getSingleton()
+
 class _QueryResult;
-typedef std::tr1::shared_ptr<_QueryResult> QueryResult;
+typedef tr1::shared_ptr<_QueryResult> QueryResult;
 
 enum Classes
 {

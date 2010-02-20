@@ -3,12 +3,15 @@
 
 #include "MersenneTwister.h"
 #include "Common.h"
+#include "Singleton.h"
+#include "Mutex.h"
+#include "Thread.h"
+#include "ThreadPool.h"
 #include "WordStringReader.h"
 #include "SharedDefines.h"
+#include "Util.h"
 #include "Log.h"
 #include "Config.h"
-#include "Thread.h"
-#include "Mutex.h"
 #include "SimpleSocket.h"
 
 #include "Field.h"
@@ -19,7 +22,6 @@
 
 #include "Replies.h"
 #include "IRCSession.h"
-#include "Singleton.h"
 
 #include "CommandParser.h"
 #include "NullCommand.h"

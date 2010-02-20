@@ -3,6 +3,9 @@ SocketMgr *pSocketMgr = NULL;
 
 SimpleSocket::SimpleSocket()
 {
+	if( pSocketMgr == NULL )
+		pSocketMgr = new SocketMgr;
+
 	m_fd = 0;
 	m_sendCount = 0;
 	m_sendPerPeriod = 3;
@@ -123,9 +126,6 @@ bool SimpleSocket::Connect(string host, uint32 port)
 	arg = 1;
 	ioctlsocket(m_fd, FIONBIO, &arg);
 
-	if( pSocketMgr == NULL )
-		pSocketMgr = new SocketMgr;
-
 	pSocketMgr->AddSocket(this);
 
 	return true;
@@ -154,8 +154,13 @@ void SocketMgr::RemoveSocket(SimpleSocket *pSocket)
 
 SocketMgr::SocketMgr()
 {
-	Thread *p = new Thread(this);
-	p->start();
+#ifdef WIN32
+	// WSA Setup
+	WSADATA info;
+	WSAStartup(MAKEWORD(2,0), &info);
+#endif
+
+	sThreadPool.ExecuteTask(this);
 }
 
 void SocketMgr::Update()

@@ -18,25 +18,23 @@
 */
 
 #include "StdAfx.h"
-using namespace std;
 CLog Log;
+
 int main()
 {
-	printf("Bwee IRC Bot\n");
-	printf("By Valroft of http://www.mintwow.com/\n");
-	printf("This program is licensed under the GNU Affero GPL.\n");
-	printf("-------------------------------------------------------\n");
+	Log.Notice("Bwee", "Bwee IRC Bot\n");
+	Log.Notice("Bwee", "By Valroft of http://www.mintwow.com/\n");
+	Log.Notice("Bwee", "This program is licensed under the GNU Affero GPL.\n");
+	Log.Notice("Bwee", "-------------------------------------------------------\n");
 	Log.Notice("Bwee", "Starting up...");
+	
+	new BweeGlobalStopEvent;
+	new ThreadPool;
 
-#ifdef WIN32
-	// WSA Setup
-	WSADATA info;
-	WSAStartup(MAKEWORD(2,0), &info);
-#endif
+	sThreadPool.ExecuteTask( new IRCSession(BWEE_CONFIGURATION_FILE) );
 
-	new IRCSession(BWEE_CONFIGURATION_FILE);
-	// Keep the main thread busy forever.
-	for(;;)
+	// Keep the main thread busy until all IRCSessions are despawned.
+	while( sBweeStopEvent.marked() )
 	{
 		Sleep(1000); 
 	}

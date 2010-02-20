@@ -39,9 +39,9 @@ public:
 	bool SetSource(const char *file, bool ignorecase = true);
 	ConfigSetting * GetSetting(const char * Block, const char * Setting);
 
-	bool GetString(const char * block, const char* name, std::string *value);
-	std::string GetStringDefault(const char * block, const char* name, const char* def);
-	std::string GetStringVA(const char * block, const char* def, const char * name, ...);
+	bool GetString(const char * block, const char* name, string *value);
+	string GetStringDefault(const char * block, const char* name, const char* def);
+	string GetStringVA(const char * block, const char* def, const char * name, ...);
 	bool GetString(const char * block, char * buffer, const char * name, const char * def, uint32 len);
 
 	bool GetBool(const char * block, const char* name, bool *value);

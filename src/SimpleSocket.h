@@ -38,7 +38,7 @@ protected:
 	time_t m_lastSendTime;
 };
 
-class SocketMgr : public IRunnable
+class SocketMgr : public ThreadContext
 {
 public:
 	SocketMgr();

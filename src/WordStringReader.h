@@ -4,7 +4,7 @@
 class WordStringReader
 {
 private:
-	std::string m_text;
+	string m_text;
 	size_t m_readPos;
 
 	bool isEmpty();
@@ -16,7 +16,7 @@ public:
 	 * Initialize a new WordStringReader to iterate over text.
 	 * @param text The text that will be read by this object. Must not be an empty string.
 	 */
-	WordStringReader(std::string text);
+	WordStringReader(string text);
 	
 	/*
 	* Returns true if there is a word ahead in the m_text string.

@@ -224,7 +224,7 @@ public:
 
 	void LargeErrorMessage(uint32 Colour, ...)
 	{
-		std::vector<char*> lines;
+		vector<char*> lines;
 		char * pointer;
 		va_list ap;
 		va_start(ap, Colour);
@@ -247,7 +247,7 @@ public:
 		printf("*                        MAJOR ERROR/WARNING                        *\n");
 		printf("*                        ===================                        *\n");
 
-		for(std::vector<char*>::iterator itr = lines.begin(); itr != lines.end(); ++itr)
+		for(vector<char*>::iterator itr = lines.begin(); itr != lines.end(); ++itr)
 		{
 			i = strlen(*itr);
 			j = (i<=65) ? 65 - i : 0;
@@ -264,8 +264,8 @@ public:
 		printf("*********************************************************************\n");
 
 #ifdef WIN32
-		std::string str = "MAJOR ERROR/WARNING:\n";
-		for(std::vector<char*>::iterator itr = lines.begin(); itr != lines.end(); ++itr)
+		string str = "MAJOR ERROR/WARNING:\n";
+		for(vector<char*>::iterator itr = lines.begin(); itr != lines.end(); ++itr)
 		{
 			str += *itr;
 			str += "\n";

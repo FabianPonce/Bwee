@@ -52,8 +52,11 @@ void IRCSession::InitializeHandlers()
 	mCreateLock.Release();
 }
 
-IRCSession::IRCSession(std::string config) : IRunnable()
+IRCSession::IRCSession(string config) : ThreadContext(), mUpdateTimer(IRCSESSION_UPDATE_INTERVAL)
 {
+	// prevent Bwee from shutting down while any connections are active.
+	sBweeStopEvent.mark();
+
 	InitializeHandlers();
 
 	mConfigFile = NULL;
@@ -75,9 +78,6 @@ IRCSession::IRCSession(std::string config) : IRunnable()
 	mLastPing = GetTickCount();
 
 	mCmdParser = new CommandParser(this);
-
-	mThread = new Thread(this);
-	mThread->start();
 }
 
 void IRCSession::RehashConfig()
@@ -92,7 +92,7 @@ void IRCSession::RehashConfig()
 		}
 	}
 
-	std::string server = GetConfig()->GetStringDefault("IRC", "Server", "");
+	string server = GetConfig()->GetStringDefault("IRC", "Server", "");
 	uint32 port = GetConfig()->GetIntDefault("IRC", "Port", 6667);
 	if( !mSocket )
 	{
@@ -179,8 +179,6 @@ void IRCSession::RehashConfig()
 
 IRCSession::~IRCSession()
 {
-	delete mThread;
-
 	if(mSocket)
 	{
 		mSocket->Disconnect();
@@ -197,6 +195,9 @@ IRCSession::~IRCSession()
 		delete m_realms[i];
 	}
 	delete [] m_realms;
+
+	// tell bwee it can shutdown if no more sessions are running.
+	sBweeStopEvent.unmark();
 }
 
 void IRCSession::OnRecv(string recvString)
@@ -307,54 +308,59 @@ void IRCSession::OnRecv(string recvString)
 	delete [] mess.argv;
 }
 
+void IRCSession::Shutdown()
+{
+	mConnState = CONN_QUITTING;
+	WriteLine("QUIT :%s", "Bwee IRC Bot %s - %s", PLATFORM_TEXT, CONFIG);
+}
+
 void IRCSession::Update()
 {
-	while(true)
+	mUpdateTimer.mark();
+	if( !mUpdateTimer.met() )
+		return;
+
+	if( mConnState == CONN_QUITTING )
 	{
-		if( mConnState == CONN_QUITTING )
-		{
-			delete this;
-			break;
-		}
-
-		if(!mSocket->IsConnected())
-		{
-			//mSocket->WipeBuffers();
-			mSocket->Connect(mHost, mPort);
-			Log.Notice("IRCSession", "Lost connection to %s, reconnecting...", mHost.c_str());
-			mConnState = CONN_CONNECTED;
-			Sleep(20);
-			continue; // update next loop.
-		}
-
-		if(mConnState == CONN_CONNECTED)
-		{
-			SendIdentification();
-			mConnState = CONN_REGISTERING;
-		}
-
-		if( mNickNameRetry )
-		{
-			mNickNameRetry = 0;
-			SendIdentification();
-		}
-
-		while(mSocket->HasLine())
-		{
-			string recv = mSocket->GetLine();
-			OnRecv(recv);
-		}
-
-		if(GetTickCount() - mLastPing > 15000)
-		{
-			WriteLine("PING :%s", mHost.c_str());
-			mLastPing = GetTickCount();
-		}
-
-		mSocket->UpdateQueue();
-
-		Sleep(20);
+		delete this;
+		return;
 	}
+
+	if(!mSocket->IsConnected())
+	{
+		//mSocket->WipeBuffers();
+		mSocket->Connect(mHost, mPort);
+		Log.Notice("IRCSession", "Lost connection to %s, reconnecting...", mHost.c_str());
+		mConnState = CONN_CONNECTED;
+		Sleep(20);
+		return;
+	}
+
+	if(mConnState == CONN_CONNECTED)
+	{
+		SendIdentification();
+		mConnState = CONN_REGISTERING;
+	}
+
+	if( mNickNameRetry )
+	{
+		mNickNameRetry = 0;
+		SendIdentification();
+	}
+
+	while(mSocket->HasLine())
+	{
+		string recv = mSocket->GetLine();
+		OnRecv(recv);
+	}
+
+	if(GetTickCount() - mLastPing > 15000)
+	{
+		WriteLine("PING :%s", mHost.c_str());
+		mLastPing = GetTickCount();
+	}
+
+	mSocket->UpdateQueue();
 }
 
 void IRCSession::SendChatMessage(MessageType type, const char * target, const char * format, ...)
@@ -403,9 +409,9 @@ void IRCSession::SendIdentification()
 	WriteLine("USER %s 8 * : %s", mNickName.c_str(), mNickName.c_str());
 }
 
-Realm* IRCSession::GetRealm(std::string n)
+Realm* IRCSession::GetRealm(string n)
 {
-	std::map<std::string, uint32>::iterator itr = m_realmMap.begin();
+	map<string, uint32>::iterator itr = m_realmMap.begin();
 	for(; itr != m_realmMap.end(); ++itr)
 	{
 		string s = itr->first;

@@ -62,14 +62,14 @@ struct IRCMessage
 	string *argv;
 };
 
-class IRCSession : public IRunnable
+class IRCSession : public ThreadContext
 {
 public:
 	/*
 	 * Constructs a new IRCSession. 
 	 * @param config The location of a valid Bwee configuration file.
 	 */
-	IRCSession(std::string config);
+	IRCSession(string config);
 	~IRCSession();
 
 	/*
@@ -113,7 +113,7 @@ public:
 	 * Returns a realm by it's name. Names are not case sensitive.
 	 * @param n The name of the realm (case insensitive).
 	 */
-	Realm* GetRealm(std::string n);
+	Realm* GetRealm(string n);
 
 	/*
 	 * Returns the number of registered realms.
@@ -130,6 +130,12 @@ public:
 	 */
 	CommandParser* GetCommandParser() { return mCmdParser; }
 
+	/*
+	 * Begins a proper shutdown of the IRCSession, closing connections with QUIT messages, etc.
+	 * This method does NOT ensure instant completion.
+	 */
+	void Shutdown();
+
 private:
 
 	/*
@@ -137,10 +143,12 @@ private:
 	 */
 	static void InitializeHandlers();
 
-	/* Message Handlers
-	* --------------------------------
-	* Invoked automatically by OnRecv. Do not invoke directly.
-	*/
+protected:
+	/* IRC RPL handlers section
+	 * --------------------------------
+	 * These methods are placed in a table that maps IRC RPL codes to the correct locations in code.
+	 * Once received, these methods parse the remaining data.
+	 */
 	void HandleSuccessfulAuth(IRCMessage& recvData);
 	void HandleMotdStart(IRCMessage& recvData);
 	void HandleMotd(IRCMessage& recvData);
@@ -154,8 +162,9 @@ private:
 	void HandleErrNotRegistered(IRCMessage& recvData);
 	void HandleErrNickNameTaken(IRCMessage& recvData);
 
+private:
 	/*
-	* Sends NICK and USER responses to the server.
+	* Sends NICK and USER identification to the server.
 	*/
 	void SendIdentification();
  
@@ -192,11 +201,11 @@ private:
 	bool mHasFullMotd;
 
 	// A list of channels and their passwords.
-	std::map<string,string> mChannelList;
+	map<string,string> mChannelList;
 
 	// Pointer to our realms.
 	Realm **  m_realms;
-	std::map<std::string, uint32> m_realmMap;
+	map<string, uint32> m_realmMap;
 
 	// The random number generator
 	MTRand * mRandGenerator;
@@ -206,13 +215,12 @@ private:
 
 	CommandParser* mCmdParser;
 
-	// The thread we're running on
-	Thread * mThread;
-
 	// nickRetry
 	uint32 mNickNameRetry;
+
+	Timer mUpdateTimer;
 };
 typedef void(IRCSession::*IRCCallback)(IRCMessage& recvData);
-typedef std::map<std::string, IRCCallback> MessageHandlerMap;
+typedef map<string, IRCCallback> MessageHandlerMap;
 extern MessageHandlerMap IRCMessageHandlerMap;
 #endif

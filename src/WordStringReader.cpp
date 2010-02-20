@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 
-WordStringReader::WordStringReader(std::string text)
+WordStringReader::WordStringReader(string text)
 {
 	m_readPos = 0;
 	m_text = text;

@@ -31,19 +31,19 @@
 #include <stack>
 #include <sstream>
 
-#include <WinSock2.h>
-#include <mysql/mysql.h>
-
+// platform-specific includes
 #ifdef WIN32
-#include <memory>
+#include <memory> // tr1
+#include <WinSock2.h>
 #else
 #include <tr1/memory>
 #endif
 
-using namespace std;
+#include <mysql/mysql.h>
 
-#pragma warning(disable:4275)
+using namespace std; // no std:: prefix necessary on string/set/etc
 
+// use secure functions, rename.
 #define snprintf _snprintf
 #define snscanf _snscanf
 #define vsnprintf _vsnprintf
@@ -53,6 +53,7 @@ using namespace std;
 #define PLATFORM_UNIX  1
 #define PLATFORM_APPLE 2
 
+// platform detection
 #define UNIX_FLAVOUR_LINUX 1
 #define UNIX_FLAVOUR_BSD 2
 #define UNIX_FLAVOUR_OTHER 3
@@ -64,20 +65,6 @@ using namespace std;
 #  define PLATFORM PLATFORM_APPLE
 #else
 #  define PLATFORM PLATFORM_UNIX
-#endif
-
-#define COMPILER_MICROSOFT 0
-#define COMPILER_GNU	   1
-#define COMPILER_BORLAND   2
-
-#ifdef _MSC_VER
-#  define COMPILER COMPILER_MICROSOFT
-#elif defined( __BORLANDC__ )
-#  define COMPILER COMPILER_BORLAND
-#elif defined( __GNUC__ )
-#  define COMPILER COMPILER_GNU
-#else
-#  pragma error "FATAL ERROR: Unknown compiler."
 #endif
 
 #if PLATFORM == PLATFORM_UNIX || PLATFORM == PLATFORM_APPLE
@@ -93,25 +80,28 @@ using namespace std;
 #define UNIX_FLAVOUR UNIX_FLAVOUR_LINUX
 #endif
 #endif
-#endif
-
+#else
 #if PLATFORM == PLATFORM_WIN32
 #define PLATFORM_TEXT "Win32"
 #endif
+#endif
 
+// configuration mode. debug/release
 #ifdef _DEBUG
 #define CONFIG "Debug"
 #else
 #define CONFIG "Release"
 #endif
 
+// inline define, force on windows, strongly suggest on *nix :)
 #ifdef WIN32
 #define BWEE_INLINE __forceinline
 #else
 #define BWEE_INLINE inline
 #endif
 
-#if COMPILER != COMPILER_GNU
+// primitive types
+#ifdef WIN32
 typedef signed __int64 int64;
 typedef signed __int32 int32;
 typedef signed __int16 int16;
@@ -138,23 +128,25 @@ typedef uint32_t DWORD;
 
 #endif
 
+// windows needs Sleep(ms) function.
 #ifndef WIN32
 #define Sleep(ms) usleep(1000*ms)
 #endif
 
+// case-sensitive comparisons
 #if PLATFORM == PLATFORM_WIN32
-#define STRCASECMP stricmp
-#else
-#define STRCASECMP strcasecmp
+#define strcasecmp stricmp
 #endif
 
+// newline style
 #if PLATFORM == PLATFORM_WIN32
 #define NEWLINE "\r\n"
 #else
 #define NEWLINE "\n"
 #endif
 
-#if COMPILER == COMPILER_MICROSOFT
+// uint64 printf-format style specifiers
+#ifdef WIN32
 
 #define I64FMT "%016I64X"
 #define I64FMTD "%I64u"

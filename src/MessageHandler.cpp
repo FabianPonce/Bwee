@@ -39,7 +39,7 @@ void IRCSession::HandleSuccessfulAuth(IRCMessage& recvData)
 	}
 
 	// Join the default channels
-	std::map<string,string>::iterator itr = mChannelList.begin();
+	map<string,string>::iterator itr = mChannelList.begin();
 	for(; itr != mChannelList.end(); itr++)
 	{
 		string join = itr->first;
