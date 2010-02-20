@@ -179,6 +179,9 @@ void IRCSession::RehashConfig()
 
 IRCSession::~IRCSession()
 {
+	// cease all updates!
+	sThreadPool.AbortTask(this);
+
 	if(mSocket)
 	{
 		mSocket->Disconnect();

@@ -22,10 +22,10 @@ CLog Log;
 
 int main()
 {
-	Log.Notice("Bwee", "Bwee IRC Bot\n");
-	Log.Notice("Bwee", "By Valroft of http://www.mintwow.com/\n");
-	Log.Notice("Bwee", "This program is licensed under the GNU Affero GPL.\n");
-	Log.Notice("Bwee", "-------------------------------------------------------\n");
+	Log.Notice("Bwee", "Bwee IRC Bot");
+	Log.Notice("Bwee", "By Valroft of http://www.mintwow.com/");
+	Log.Notice("Bwee", "This program is licensed under the GNU Affero GPL.");
+	Log.Notice("Bwee", "-------------------------------------------------------");
 	Log.Notice("Bwee", "Starting up...");
 	
 	new BweeGlobalStopEvent;

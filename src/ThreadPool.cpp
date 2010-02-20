@@ -22,7 +22,6 @@ void ThreadPoolPool::ExecuteTask(ThreadContext* pRunnable)
 
 void ThreadPoolPool::AbortTask(ThreadContext* pRunnable)
 {
-	Guard g(m_lock);
 	for(list<ThreadContext*>::iterator itr = m_tasks.begin(); itr != m_tasks.end(); ++itr)
 	{
 		if( (*itr) == pRunnable )
@@ -38,10 +37,14 @@ void ThreadPoolPool::Update()
 	while(1)
 	{
 		m_lock.Acquire();
-		for(list<ThreadContext*>::iterator itr = m_tasks.begin(); itr != m_tasks.end(); ++itr)
-			(*itr)->Update();
+		for(list<ThreadContext*>::iterator itr = m_tasks.begin(); itr != m_tasks.end(); )
+		{
+			list<ThreadContext*>::iterator itrOld = itr;
+			++itr;
+			(*itrOld)->Update(); // in case of AbortEvent mid-execution
+		}
 		m_lock.Release();
-		Sleep(1);
+		Sleep(5);
 	}
 }
 
