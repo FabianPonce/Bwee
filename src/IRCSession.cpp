@@ -238,6 +238,40 @@ void IRCSession::OnRecv(string recvString)
 		r = sscanf(recvString.c_str(), ":%255s %255s %4095[^\r\n]", hostmask, opcode, args);
 	}
 
+	// hokay, now argc/argv based on WordStringReader params ;D
+	{
+		string workStr = recvString.substr( recvString.find(' ') + 1 );
+		WordStringReader wsr(workStr);
+
+		vector<string> words;
+		while( wsr.hasNextWord() )
+		{
+			string word = wsr.getNextWord();
+			if( word.find(':') != string::npos )
+			{
+				// remainder-ize!
+				size_t t = word.find(':');
+				words.push_back( word.substr(0, t-1) );
+				string post = word.substr(t+1);
+				post += wsr.getRemainder();
+				words.push_back(post);
+				break;
+			}
+			
+			words.push_back(word);
+		}
+
+		// import words!
+		mess.argv = new string[ words.size() ];
+		uint32 x = 0;
+		for(vector<string>::iterator itr = words.begin(); itr != words.end(); ++itr)
+		{
+			mess.argv[x] = (*itr);
+			++x;
+		}
+		mess.argc = (uint32)words.size();
+	}
+
 	mess.hostmask = string(hostmask);
 	mess.opcode = string(opcode);
 	mess.args = string(args);
@@ -257,12 +291,15 @@ void IRCSession::OnRecv(string recvString)
 	{
 		// Do not process this, print out some debug information
 		Log.Notice("IRCSession", "Received unhandled opcode: %s", mess.opcode.c_str());
+		delete [] mess.argv;
 		return;
 	}
 
 	// Pass this on to the correct handler.
 	IRCCallback cb = itr->second;
 	(this->*cb)(mess);
+
+	delete [] mess.argv;
 }
 
 void IRCSession::Shutdown()
