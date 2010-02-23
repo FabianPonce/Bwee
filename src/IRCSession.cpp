@@ -167,7 +167,7 @@ void IRCSession::RehashConfig()
 			string database = GetConfig()->GetStringDefault(config.c_str(), "DBName", "characters");
 			int dbport = GetConfig()->GetIntDefault(config.c_str(), "DBPort", 3306);
 			MySQLConnection * conn = new MySQLConnection(dbhost, dbport, dbuser, dbpassword);
-			conn->Query("USE %s", database.c_str());
+			conn->UseDatabase(database);
 			m_realms[i] = new Realm( name, conn );
 			m_realmMap[ m_realms[i]->GetName() ] = i;
 		}
@@ -238,49 +238,6 @@ void IRCSession::OnRecv(string recvString)
 		r = sscanf(recvString.c_str(), ":%255s %255s %4095[^\r\n]", hostmask, opcode, args);
 	}
 
-	// Fallback method, argc/argv
-	// This is so ugly and inefficient. Todo: redo me with WordStringReader
-	mess.argc = 0;
-	string *argv = new string[1024];
-	uint32 lastSpace = 0;
-	uint32 offset = (uint32)recvString.find(' ', recvString.find(' ')+1);
-	uint32 newline = (uint32)recvString.find('\n');
-	while(true)
-	{
-		uint32 spaceLoc = (uint32)recvString.find(' ', lastSpace+1);
-		if(spaceLoc == string::npos)
-			break;
-
-		// Removing the first two arguments.
-		if(spaceLoc <= offset)
-		{
-			lastSpace = spaceLoc;
-			continue;
-		}
-
-		mess.argc++;
-
-		argv[mess.argc - 1] = recvString.substr(lastSpace+1, spaceLoc-lastSpace-1);
-		if(argv[mess.argc - 1].find(':') != string::npos)
-		{
-			// We have a colon, this basically means the rest of the text
-			// is one giant argument. Remove the colon and go on.
-			argv[mess.argc - 1] = recvString.substr(lastSpace+2);
-			break;
-		}
-
-		lastSpace = spaceLoc;
-	}
-	// Lolcopy!
-	mess.argv = new string[mess.argc];
-	for(uint32 i = 0; i < mess.argc; i++)
-	{
-		if(i != mess.argc - 1)
-			mess.argv[i] = argv[i];
-		else
-			mess.argv[i] = argv[i].substr(0, argv[i].length()-1);
-	}
-
 	mess.hostmask = string(hostmask);
 	mess.opcode = string(opcode);
 	mess.args = string(args);
@@ -306,9 +263,6 @@ void IRCSession::OnRecv(string recvString)
 	// Pass this on to the correct handler.
 	IRCCallback cb = itr->second;
 	(this->*cb)(mess);
-
-	delete [] argv;
-	delete [] mess.argv;
 }
 
 void IRCSession::Shutdown()
